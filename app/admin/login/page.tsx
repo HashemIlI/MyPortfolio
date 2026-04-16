@@ -15,10 +15,15 @@ export default function LoginPage() {
     setError('');
 
     try {
+      const payload = {
+        username: form.username.trim(),
+        password: form.password,
+      };
+
       await fetchJson<{ success: boolean }>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       router.push('/admin');
@@ -55,6 +60,8 @@ export default function LoginPage() {
               <input
                 type="text"
                 required
+                autoComplete="username"
+                maxLength={64}
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 placeholder="admin"
@@ -67,6 +74,8 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
+                maxLength={256}
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="********"

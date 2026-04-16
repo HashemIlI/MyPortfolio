@@ -95,14 +95,16 @@ export default function SettingsAdminPage() {
 
     setSavingCredentials(true);
     try {
+      const payload = {
+        username: credentials.username.trim(),
+        currentPassword: credentials.currentPassword,
+        newPassword: credentials.newPassword,
+      };
+
       const res = await fetch('/api/auth/credentials', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: credentials.username,
-          currentPassword: credentials.currentPassword,
-          newPassword: credentials.newPassword,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const response = await res.json();
@@ -505,6 +507,8 @@ function Field({
         type={type}
         value={val}
         onChange={(e) => set(e.target.value)}
+        maxLength={type === 'password' ? 256 : 500}
+        autoComplete={type === 'password' ? 'off' : undefined}
         placeholder={placeholder}
         dir={dir}
         className="admin-control w-full rounded-xl px-3 py-2 text-sm placeholder:text-muted-foreground/60"

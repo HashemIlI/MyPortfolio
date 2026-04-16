@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
-import { getJwtSecret } from '@/lib/env';
+import { COOKIE_NAME, getExpiredAuthCookieOptions, verifyToken } from '@/lib/auth';
 
-const JWT_SECRET = new TextEncoder().encode(getJwtSecret());
-const COOKIE_NAME = 'portfolio_admin_token';
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -22,11 +19,14 @@ export async function middleware(req: NextRequest) {
     }
 
     try {
-      await jwtVerify(token, JWT_SECRET);
+      const payload = await verifyToken(token);
+      if (!payload) {
+        throw new Error('Invalid token');
+      }
       return NextResponse.next();
     } catch {
       const response = NextResponse.redirect(new URL('/admin/login', req.url));
-      response.cookies.delete(COOKIE_NAME);
+      response.cookies.set(COOKIE_NAME, '', getExpiredAuthCookieOptions());
       return response;
     }
   }
