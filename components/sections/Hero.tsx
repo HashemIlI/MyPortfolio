@@ -38,7 +38,6 @@ export default function Hero({ profile }: HeroProps) {
     'Available for work'
   );
   const profileImage = profile?.profileImage?.trim();
-  const isLocalProfileImage = Boolean(profileImage?.startsWith('/'));
 
   const container = {
     hidden: { opacity: 0 },
@@ -83,23 +82,15 @@ export default function Hero({ profile }: HeroProps) {
                 className="h-40 w-40 sm:h-44 sm:w-44"
               >
                 <div className="h-full w-full overflow-hidden rounded-full ring-2 ring-primary/70 ring-offset-2 ring-offset-background shadow-lg shadow-primary/25">
-                  {isLocalProfileImage ? (
-                    <Image
-                      src={profileImage}
-                      alt={name}
-                      width={176}
-                      height={176}
-                      quality={100}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={profileImage}
-                      alt={name}
-                      className="h-full w-full object-cover"
-                    />
-                  )}
+                  <Image
+                    src={profileImage}
+                    alt={name}
+                    width={176}
+                    height={176}
+                    quality={100}
+                    sizes="(max-width: 640px) 160px, 176px"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
               </motion.div>
             </motion.div>
