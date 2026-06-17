@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
     }
 
     const project = await Project.create(body);
+    revalidatePath('/');
     await logAuditEvent({
       request,
       action: 'create',

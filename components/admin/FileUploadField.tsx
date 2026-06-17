@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { Check, Loader2, Upload } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Upload } from 'lucide-react';
 
 interface Props {
   label: string;
@@ -22,21 +22,27 @@ export default function FileUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   async function handleUpload(file: File) {
     setUploading(true);
     setUploaded(false);
+    setUploadError(null);
     const fd = new FormData();
     fd.append('file', file);
     fd.append('subdir', subdir);
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         onChange(data.url);
         setUploaded(true);
         setTimeout(() => setUploaded(false), 2000);
+      } else {
+        setUploadError(data.error ?? 'Upload failed');
       }
+    } catch {
+      setUploadError('Upload failed — check your connection');
     } finally {
       setUploading(false);
     }
@@ -81,6 +87,12 @@ export default function FileUploadField({
           }}
         />
       </div>
+      {uploadError && (
+        <p className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          {uploadError}
+        </p>
+      )}
       {value && (
         <div className="mt-2">
           {value.endsWith('.pdf') ? (

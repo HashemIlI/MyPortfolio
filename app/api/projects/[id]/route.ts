@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Project from '@/models/Project';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -77,6 +78,7 @@ export async function PUT(
     }).lean();
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+    revalidatePath('/');
     await logAuditEvent({
       request,
       action: 'update',
@@ -109,6 +111,7 @@ export async function DELETE(
     const authContext = await getAuthContext(request);
     await connectDB();
     await Project.findByIdAndDelete(id);
+    revalidatePath('/');
 
     await logAuditEvent({
       request,
