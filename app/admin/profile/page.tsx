@@ -102,6 +102,18 @@ export default function ProfileAdminPage() {
               subdir="profile"
               placeholder="/uploads/profile/photo.jpg"
             />
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="showProfilePhoto"
+                checked={data.showProfilePhoto !== false}
+                onChange={(e) => set('showProfilePhoto', e.target.checked)}
+                className="h-4 w-4 rounded accent-emerald-500"
+              />
+              <label htmlFor="showProfilePhoto" className="text-sm text-gray-300">
+                Show profile photo on website
+              </label>
+            </div>
             <FileUploadField
               label="CV / Resume (PDF)"
               value={str('cvFile')}

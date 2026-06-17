@@ -38,7 +38,8 @@ export async function PUT(request: Request) {
       success: true,
     });
 
-    revalidatePath('/', 'page');
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     return NextResponse.json(profile);
   } catch {

@@ -11,6 +11,7 @@ export interface IProfile extends Document {
   subtitleEn: string;
   subtitleAr: string;
   profileImage: string;
+  showProfilePhoto: boolean;
   cvFile: string;
   // Summary
   summaryEn: string;
@@ -52,6 +53,7 @@ const ProfileSchema = new Schema<IProfile>(
     subtitleEn: { type: String, default: '' },
     subtitleAr: { type: String, default: '' },
     profileImage: { type: String, default: '' },
+    showProfilePhoto: { type: Boolean, default: true },
     cvFile: { type: String, default: '' },
     summaryEn: { type: String, default: '' },
     summaryAr: { type: String, default: '' },

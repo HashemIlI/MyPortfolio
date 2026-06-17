@@ -14,6 +14,7 @@ const PROFILE_UPDATE_FIELDS = [
   'subtitleEn',
   'subtitleAr',
   'profileImage',
+  'showProfilePhoto',
   'cvFile',
   'summaryEn',
   'summaryAr',
@@ -63,7 +64,7 @@ export function pickProfileUpdate(input: Record<string, unknown>): ProfileUpdate
   return PROFILE_UPDATE_FIELDS.reduce<ProfileUpdateInput>((update, field) => {
     const value = input[field];
 
-    if (field === 'availableForWork') {
+    if (field === 'availableForWork' || field === 'showProfilePhoto') {
       if (typeof value === 'boolean') {
         update[field] = value;
       }

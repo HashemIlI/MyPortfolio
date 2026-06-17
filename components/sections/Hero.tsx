@@ -75,7 +75,7 @@ export default function Hero({ profile }: HeroProps) {
             </motion.div>
           )}
 
-          {profileImage && (
+          {profileImage && profile?.showProfilePhoto !== false && (
             <motion.div variants={item} className="flex justify-center">
               {isLocalProfileImage ? (
                 <Image

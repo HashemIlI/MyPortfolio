@@ -9,6 +9,7 @@ export interface ProfileData {
   subtitleEn: string;
   subtitleAr: string;
   profileImage: string;
+  showProfilePhoto: boolean;
   cvFile: string;
   summaryEn: string;
   summaryAr: string;
