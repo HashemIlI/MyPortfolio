@@ -20,7 +20,7 @@ import Contact from '@/components/sections/Contact';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 type SectionConfig = {
   key: string;

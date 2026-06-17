@@ -79,6 +79,7 @@ export async function PUT(
     if (!project) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     revalidatePath('/');
+    revalidatePath('/', 'layout');
     await logAuditEvent({
       request,
       action: 'update',
@@ -112,6 +113,7 @@ export async function DELETE(
     await connectDB();
     await Project.findByIdAndDelete(id);
     revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,

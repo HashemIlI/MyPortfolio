@@ -81,6 +81,7 @@ export async function POST(request: Request) {
 
     const project = await Project.create(body);
     revalidatePath('/');
+    revalidatePath('/', 'layout');
     await logAuditEvent({
       request,
       action: 'create',
