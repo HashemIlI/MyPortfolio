@@ -77,22 +77,31 @@ export default function Hero({ profile }: HeroProps) {
 
           {profileImage && profile?.showProfilePhoto !== false && (
             <motion.div variants={item} className="flex justify-center">
-              {isLocalProfileImage ? (
-                <Image
-                  src={profileImage}
-                  alt={name}
-                  width={128}
-                  height={128}
-                  className="h-28 w-28 rounded-full border border-border object-cover shadow-lg shadow-primary/10 sm:h-32 sm:w-32"
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={profileImage}
-                  alt={name}
-                  className="h-28 w-28 rounded-full border border-border object-cover shadow-lg shadow-primary/10 sm:h-32 sm:w-32"
-                />
-              )}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="h-40 w-40 sm:h-44 sm:w-44"
+              >
+                <div className="h-full w-full overflow-hidden rounded-full ring-2 ring-primary/70 ring-offset-2 ring-offset-background shadow-lg shadow-primary/25">
+                  {isLocalProfileImage ? (
+                    <Image
+                      src={profileImage}
+                      alt={name}
+                      width={176}
+                      height={176}
+                      quality={100}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profileImage}
+                      alt={name}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           )}
 
