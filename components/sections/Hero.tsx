@@ -90,6 +90,7 @@ export default function Hero({ profile }: HeroProps) {
                     quality={100}
                     sizes="(max-width: 640px) 160px, 176px"
                     className="h-full w-full object-cover"
+                    style={{ objectPosition: profile?.profilePhotoPosition || 'center' }}
                   />
                 </div>
               </motion.div>

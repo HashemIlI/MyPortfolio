@@ -14,6 +14,7 @@ const PROFILE_UPDATE_FIELDS = [
   'subtitleEn',
   'subtitleAr',
   'profileImage',
+  'profilePhotoPosition',
   'showProfilePhoto',
   'cvFile',
   'summaryEn',

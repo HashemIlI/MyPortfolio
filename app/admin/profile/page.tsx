@@ -114,6 +114,13 @@ export default function ProfileAdminPage() {
                 Show profile photo on website
               </label>
             </div>
+            {str('profileImage') && (
+              <PhotoFocalPoint
+                imageUrl={str('profileImage')}
+                position={str('profilePhotoPosition') || 'center'}
+                onChange={(v) => set('profilePhotoPosition', v)}
+              />
+            )}
             <FileUploadField
               label="CV / Resume (PDF)"
               value={str('cvFile')}
@@ -222,6 +229,75 @@ function Field({ label, fieldKey, str, set, type = 'text', placeholder = '' }: {
         placeholder={placeholder}
         className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 text-sm focus:outline-none focus:border-emerald-500"
       />
+    </div>
+  );
+}
+
+function parseObjectPosition(pos: string): [number, number] {
+  if (!pos || pos === 'center') return [50, 50];
+  const parts = pos.trim().split(/\s+/);
+  const parse = (s: string | undefined, fb: number) => {
+    if (!s || s === 'center') return fb;
+    if (s === 'left' || s === 'top') return 0;
+    if (s === 'right' || s === 'bottom') return 100;
+    return s.endsWith('%') ? parseFloat(s) : fb;
+  };
+  return [parse(parts[0], 50), parse(parts[1], 50)];
+}
+
+function PhotoFocalPoint({ imageUrl, position, onChange }: {
+  imageUrl: string;
+  position: string;
+  onChange: (v: string) => void;
+}) {
+  const [x, y] = parseObjectPosition(position);
+  const update = (nx: number, ny: number) => onChange(`${Math.round(nx)}% ${Math.round(ny)}%`);
+  return (
+    <div className="rounded-lg border border-gray-700 bg-gray-900 p-4">
+      <p className="mb-3 text-xs font-medium text-gray-400">Photo Focal Point</p>
+      <div className="flex items-start gap-5">
+        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-full ring-2 ring-emerald-500/50 ring-offset-2 ring-offset-gray-900">
+          <img
+            src={imageUrl}
+            alt="preview"
+            className="h-full w-full object-cover"
+            style={{ objectPosition: `${Math.round(x)}% ${Math.round(y)}%` }}
+          />
+        </div>
+        <div className="flex-1 space-y-3">
+          <div>
+            <div className="mb-1 flex justify-between text-xs">
+              <span className="text-gray-400">Horizontal (X)</span>
+              <span className="text-gray-500">{Math.round(x)}%</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(x)}
+              onChange={(e) => update(Number(e.target.value), y)}
+              className="w-full cursor-pointer accent-emerald-500"
+            />
+          </div>
+          <div>
+            <div className="mb-1 flex justify-between text-xs">
+              <span className="text-gray-400">Vertical (Y)</span>
+              <span className="text-gray-500">{Math.round(y)}%</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(y)}
+              onChange={(e) => update(x, Number(e.target.value))}
+              className="w-full cursor-pointer accent-emerald-500"
+            />
+          </div>
+          <p className="font-mono text-[11px] text-gray-600">{position || 'center'}</p>
+        </div>
+      </div>
     </div>
   );
 }
