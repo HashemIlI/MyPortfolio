@@ -91,7 +91,7 @@ export default function About({ profile }: AboutProps) {
               {highlights.map((highlight, index) => (
                 <div
                   key={index}
-                  className={`rounded-lg border border-border/60 bg-background/25 px-3 py-2.5 ${isRTL ? 'text-right' : ''}`}
+                  className="rounded-lg border border-border/60 bg-background/25 px-3 py-2.5 text-start"
                 >
                   <p className="text-[13px] leading-5 text-muted-foreground">
                     {highlight}

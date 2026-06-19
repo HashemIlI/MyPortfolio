@@ -11,7 +11,7 @@ interface EducationSectionProps {
 }
 
 export default function EducationSection({ education }: EducationSectionProps) {
-  const { language, t } = useLanguage();
+  const { language, isRTL, t } = useLanguage();
 
   return (
     <SectionWrapper id="education" className="py-14 lg:py-24">
@@ -29,7 +29,7 @@ export default function EducationSection({ education }: EducationSectionProps) {
           {education.map((edu, i) => (
             <motion.div
               key={String(edu._id)}
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.08 }}

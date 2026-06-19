@@ -164,10 +164,7 @@ export default function Navbar({ sections }: { sections?: NavSection[] }) {
                 <button
                   key={link.href}
                   onClick={() => handleNavClick(link)}
-                  className={cn(
-                    'rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
-                    isRTL ? 'text-right' : 'text-left'
-                  )}
+                  className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground text-start"
                 >
                   {link.label}
                 </button>

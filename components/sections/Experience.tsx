@@ -12,7 +12,7 @@ interface ExperienceProps {
 }
 
 export default function Experience({ experiences }: ExperienceProps) {
-  const { language, t } = useLanguage();
+  const { language, isRTL, t } = useLanguage();
 
   return (
     <SectionWrapper id="experience" className="py-14 lg:py-24">
@@ -27,19 +27,19 @@ export default function Experience({ experiences }: ExperienceProps) {
         </div>
 
         <div className="relative">
-          <div className="absolute bottom-0 left-4 top-0 w-px bg-gradient-to-b from-primary/40 via-border to-transparent sm:left-5" />
+          <div className="absolute bottom-0 start-4 top-0 w-px bg-gradient-to-b from-primary/40 via-border to-transparent sm:start-5" />
 
           <div className="space-y-8">
             {experiences.map((exp, i) => (
               <motion.div
                 key={String(exp._id)}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: i * 0.08 }}
-                className="relative pl-11 sm:pl-14"
+                className="relative ps-11 sm:ps-14"
               >
-                <div className="absolute left-2 top-1 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full border-2 border-primary bg-background sm:left-2.5">
+                <div className="absolute start-2 top-1 flex h-5 w-5 -translate-x-1/2 rtl:translate-x-1/2 items-center justify-center rounded-full border-2 border-primary bg-background sm:start-2.5">
                   <Briefcase className="h-2.5 w-2.5 text-primary" />
                 </div>
 
