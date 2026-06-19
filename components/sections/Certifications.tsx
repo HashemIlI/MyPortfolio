@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Award, ChevronDown, ExternalLink } from 'lucide-react';
+import { Award, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SectionWrapper from '@/components/SectionWrapper';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ExpandableText from '@/components/ui/ExpandableText';
 import type { CertificationData } from '@/types/content';
 
 interface CertificationsProps {
@@ -67,67 +67,6 @@ function formatCertDate(dateStr: string): string {
   return month ? `${month} ${m[1]}` : dateStr;
 }
 
-const DESCRIPTION_COLLAPSED_HEIGHT = 48; // 2 lines × 24px (text-sm leading-6)
-
-function ExpandableDescription({
-  description,
-  t,
-}: {
-  description: string;
-  t: (en: string, ar: string) => string;
-}) {
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [canExpand, setCanExpand] = useState(() => description.trim().length > 80);
-
-  useEffect(() => {
-    setExpanded(false);
-    const frame = window.requestAnimationFrame(() => {
-      const element = textRef.current;
-      if (!element) return;
-      setCanExpand(element.scrollHeight > DESCRIPTION_COLLAPSED_HEIGHT + 4 || description.trim().length > 80);
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [description]);
-
-  return (
-    <div className="mt-4 flex flex-1 flex-col">
-      <motion.div
-        initial={false}
-        animate={{ height: canExpand && !expanded ? DESCRIPTION_COLLAPSED_HEIGHT : 'auto' }}
-        transition={{ duration: 0.22, ease: 'easeInOut' }}
-        className="overflow-hidden"
-      >
-        <p
-          ref={textRef}
-          className="text-sm leading-6 text-muted-foreground"
-          style={
-            canExpand && !expanded
-              ? {
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }
-              : undefined
-          }
-        >
-          {description}
-        </p>
-      </motion.div>
-      {canExpand && (
-        <button
-          type="button"
-          onClick={() => setExpanded((current) => !current)}
-          className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-primary/90 transition-colors hover:text-primary"
-        >
-          {expanded ? t('Show less', 'عرض أقل') : t('Read more', 'قراءة المزيد')}
-          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-        </button>
-      )}
-    </div>
-  );
-}
 
 function CertCard({
   cert, index, language, t, featured = false,
@@ -173,7 +112,14 @@ function CertCard({
         </div>
 
         {description && (
-          <ExpandableDescription description={description} t={t} />
+          <ExpandableText
+            text={description}
+            collapsedHeight={48}
+            lineClamp={2}
+            className="text-sm leading-6 text-muted-foreground"
+            wrapperClassName="mt-4 flex flex-1 flex-col"
+            t={t}
+          />
         )}
 
         {cert.credentialUrl && (

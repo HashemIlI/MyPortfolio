@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ExternalLink, Github, Star } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import SectionWrapper from '@/components/SectionWrapper';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import ExpandableText from '@/components/ui/ExpandableText';
 import type { ProjectData } from '@/lib/content/project';
 import type { CategoryGroupData } from '@/lib/content/category-group';
 import { buildProjectDisplayGroups } from '@/lib/content/project-display';
@@ -32,7 +33,6 @@ const CATEGORY_AR: Record<string, string> = {
 const GRID_TRANSITION = { duration: 0.24, ease: 'easeInOut' as const };
 const EXTRA_CARD_TRANSITION = { duration: 0.2, ease: 'easeInOut' as const };
 const DETAILS_TRANSITION = { duration: 0.22, ease: 'easeInOut' as const };
-const SUMMARY_COLLAPSED_HEIGHT = 60;
 const TECH_STACK_LIMIT = 5;
 
 export default function Projects({ projects, categoryGroups }: ProjectsProps) {
@@ -231,7 +231,18 @@ function ProjectCard({
           <h3 className="min-h-[2.5rem] text-base font-semibold leading-snug text-foreground">
             {language === 'ar' ? project.titleAr || project.titleEn : project.titleEn}
           </h3>
-          <ExpandableText text={summary} t={t} />
+          {summary ? (
+            <ExpandableText
+              text={summary}
+              collapsedHeight={60}
+              lineClamp={3}
+              className="text-sm leading-5 text-muted-foreground"
+              wrapperClassName="mt-1.5"
+              t={t}
+            />
+          ) : (
+            <div className="mt-1.5 min-h-[3.75rem]" aria-hidden="true" />
+          )}
         </div>
 
         <div className="mt-3 min-h-[3.1rem]">
@@ -354,71 +365,6 @@ function ProjectCard({
   );
 }
 
-function ExpandableText({
-  text,
-  t,
-}: {
-  text: string;
-  t: (en: string, ar: string) => string;
-}) {
-  const textRef = useRef<HTMLParagraphElement>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [canExpand, setCanExpand] = useState(() => text.trim().length > 145);
-
-  useEffect(() => {
-    setExpanded(false);
-    const frame = window.requestAnimationFrame(() => {
-      const element = textRef.current;
-      if (!element) return;
-      setCanExpand(element.scrollHeight > SUMMARY_COLLAPSED_HEIGHT + 4 || text.trim().length > 145);
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [text]);
-
-  if (!text) {
-    return <div className="mt-1.5 min-h-[3.75rem]" aria-hidden="true" />;
-  }
-
-  return (
-    <div className="mt-1.5">
-      <motion.div
-        initial={false}
-        animate={{ height: canExpand && !expanded ? SUMMARY_COLLAPSED_HEIGHT : 'auto' }}
-        transition={DETAILS_TRANSITION}
-        className="overflow-hidden"
-      >
-        <p
-          ref={textRef}
-          className="text-sm leading-5 text-muted-foreground"
-          style={
-            canExpand && !expanded
-              ? {
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }
-              : undefined
-          }
-        >
-          {text}
-        </p>
-      </motion.div>
-
-      {canExpand && (
-        <button
-          type="button"
-          onClick={() => setExpanded((current) => !current)}
-          className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-primary/90 transition-colors hover:text-primary"
-        >
-          {expanded ? t('Show less', 'عرض أقل') : t('Read more', 'قراءة المزيد')}
-          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-        </button>
-      )}
-    </div>
-  );
-}
 
 function ExpandableTechStack({
   tools,
