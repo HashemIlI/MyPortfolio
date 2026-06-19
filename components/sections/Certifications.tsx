@@ -57,6 +57,16 @@ export default function Certifications({ certifications }: CertificationsProps) 
   );
 }
 
+const CERT_DISPLAY_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function formatCertDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const m = dateStr.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return dateStr;
+  const month = CERT_DISPLAY_MONTHS[parseInt(m[2], 10) - 1];
+  return month ? `${month} ${m[1]}` : dateStr;
+}
+
 const DESCRIPTION_COLLAPSED_HEIGHT = 48; // 2 lines × 24px (text-sm leading-6)
 
 function ExpandableDescription({
@@ -158,7 +168,7 @@ function CertCard({
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-primary/90">{cert.issuer}</span>
           {cert.date && (
-            <span className="text-xs text-muted-foreground/90">{cert.date}</span>
+            <span className="text-xs text-muted-foreground/90">{formatCertDate(cert.date)}</span>
           )}
         </div>
 

@@ -31,6 +31,8 @@ const CERT_MONTH_MAP: Record<string, number> = {
 
 function parseCertDate(dateStr: string | undefined | null): number {
   if (!dateStr) return 0;
+  const yyyyMm = dateStr.match(/^(\d{4})-(\d{2})$/);
+  if (yyyyMm) return new Date(parseInt(yyyyMm[1], 10), parseInt(yyyyMm[2], 10) - 1, 1).getTime();
   const monthYear = dateStr.match(/^([A-Za-z]+)\s+(\d{4})$/);
   if (monthYear) {
     const month = CERT_MONTH_MAP[monthYear[1]];

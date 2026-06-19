@@ -17,6 +17,30 @@ const EMPTY: FormData = {
   featured: false, visible: true, order: 0,
 };
 
+const LEGACY_MONTH_MAP: Record<string, string> = {
+  Jan: '01', January: '01', Feb: '02', February: '02', Mar: '03', March: '03',
+  Apr: '04', April: '04', May: '05', Jun: '06', June: '06', Jul: '07', July: '07',
+  Aug: '08', August: '08', Sep: '09', September: '09', Oct: '10', October: '10',
+  Nov: '11', November: '11', Dec: '12', December: '12',
+};
+
+function toMonthInputValue(dateStr: string): string {
+  if (!dateStr) return '';
+  if (/^\d{4}-\d{2}$/.test(dateStr)) return dateStr;
+  const m = dateStr.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (m && LEGACY_MONTH_MAP[m[1]]) return `${m[2]}-${LEGACY_MONTH_MAP[m[1]]}`;
+  return '';
+}
+
+function formatCertDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const m = dateStr.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return dateStr;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const month = months[parseInt(m[2], 10) - 1];
+  return month ? `${month} ${m[1]}` : dateStr;
+}
+
 export default function CertificationsAdminPage() {
   const [certs, setCerts] = useState<CertificationData[]>([]);
   const [modal, setModal] = useState(false);
@@ -35,7 +59,7 @@ export default function CertificationsAdminPage() {
   function openEdit(c: CertificationData) {
     setEditing(c);
     setForm({
-      nameEn: c.nameEn, nameAr: c.nameAr || '', issuer: c.issuer, date: c.date || '',
+      nameEn: c.nameEn, nameAr: c.nameAr || '', issuer: c.issuer, date: toMonthInputValue(c.date || ''),
       descriptionEn: c.descriptionEn || '', descriptionAr: c.descriptionAr || '',
       credentialUrl: c.credentialUrl || '', badge: c.badge || '',
       featured: c.featured, visible: c.visible, order: c.order,
@@ -102,7 +126,7 @@ export default function CertificationsAdminPage() {
                     <span className="text-xs text-gray-400">{c.issuer}</span>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
-                    <span className="text-xs text-gray-500">{c.date}</span>
+                    <span className="text-xs text-gray-500">{formatCertDate(c.date)}</span>
                   </td>
                   <td className="px-4 py-3 text-center">
                     {c.featured && <Star className="h-3.5 w-3.5 text-amber-400 fill-current mx-auto" />}
@@ -133,7 +157,7 @@ export default function CertificationsAdminPage() {
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <F label="Issuer *" val={form.issuer} set={(v) => setForm({ ...form, issuer: v })} />
-                <F label="Date" val={form.date} set={(v) => setForm({ ...form, date: v })} placeholder="Feb 2025" />
+                <F label="Date" val={form.date} set={(v) => setForm({ ...form, date: v })} type="month" />
               </div>
               <T label="Description (EN)" val={form.descriptionEn} set={(v) => setForm({ ...form, descriptionEn: v })} rows={2} />
               <T label="Description (AR)" val={form.descriptionAr} set={(v) => setForm({ ...form, descriptionAr: v })} rows={2} dir="rtl" />
