@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Certification from '@/models/Certification';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -51,6 +52,8 @@ export async function PUT(
       details: { nameEn: cert.nameEn, issuer: cert.issuer },
     });
 
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
     return NextResponse.json(JSON.parse(JSON.stringify(cert)));
   } catch {
     return NextResponse.json({ error: 'Failed to update certification' }, { status: 500 });
@@ -79,6 +82,8 @@ export async function DELETE(
       success: true,
     });
 
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Failed to delete certification' }, { status: 500 });
