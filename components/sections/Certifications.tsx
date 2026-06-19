@@ -168,7 +168,7 @@ function CertCard({
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-primary/90">{cert.issuer}</span>
           {cert.date && (
-            <span className="text-xs text-muted-foreground/90">{formatCertDate(cert.date)}</span>
+            <span className="text-xs text-muted-foreground/90" dir="ltr">{formatCertDate(cert.date)}</span>
           )}
         </div>
 
