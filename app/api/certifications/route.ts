@@ -7,13 +7,15 @@ import { logAuditEvent } from '@/lib/audit-log';
 import { readSanitizedJsonObject } from '@/lib/security';
 
 const MONTH_MAP: Record<string, number> = {
-  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  Jan: 0, January: 0, Feb: 1, February: 1, Mar: 2, March: 2,
+  Apr: 3, April: 3, May: 4, Jun: 5, June: 5, Jul: 6, July: 6,
+  Aug: 7, August: 7, Sep: 8, September: 8, Oct: 9, October: 9,
+  Nov: 10, November: 10, Dec: 11, December: 11,
 };
 
 function parseCertDate(dateStr: string | undefined): number {
   if (!dateStr) return 0;
-  const monthYear = dateStr.match(/^([A-Za-z]{3})\s+(\d{4})$/);
+  const monthYear = dateStr.match(/^([A-Za-z]+)\s+(\d{4})$/);
   if (monthYear) {
     const month = MONTH_MAP[monthYear[1]];
     const year = parseInt(monthYear[2], 10);

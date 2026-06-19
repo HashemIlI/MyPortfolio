@@ -57,7 +57,7 @@ export default function Certifications({ certifications }: CertificationsProps) 
   );
 }
 
-const DESCRIPTION_COLLAPSED_HEIGHT = 60;
+const DESCRIPTION_COLLAPSED_HEIGHT = 48; // 2 lines × 24px (text-sm leading-6)
 
 function ExpandableDescription({
   description,
@@ -68,14 +68,14 @@ function ExpandableDescription({
 }) {
   const textRef = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
-  const [canExpand, setCanExpand] = useState(() => description.trim().length > 120);
+  const [canExpand, setCanExpand] = useState(() => description.trim().length > 80);
 
   useEffect(() => {
     setExpanded(false);
     const frame = window.requestAnimationFrame(() => {
       const element = textRef.current;
       if (!element) return;
-      setCanExpand(element.scrollHeight > DESCRIPTION_COLLAPSED_HEIGHT + 4 || description.trim().length > 120);
+      setCanExpand(element.scrollHeight > DESCRIPTION_COLLAPSED_HEIGHT + 4 || description.trim().length > 80);
     });
     return () => window.cancelAnimationFrame(frame);
   }, [description]);
@@ -95,7 +95,7 @@ function ExpandableDescription({
             canExpand && !expanded
               ? {
                   display: '-webkit-box',
-                  WebkitLineClamp: 3,
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
                 }
