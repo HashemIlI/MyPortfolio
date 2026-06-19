@@ -40,7 +40,7 @@ function parseCertDate(dateStr: string | undefined | null): number {
     if (month !== undefined && !isNaN(year)) return new Date(year, month, 1).getTime();
   }
   const yearOnly = dateStr.match(/^(\d{4})$/);
-  if (yearOnly) return new Date(parseInt(yearOnly[1], 10), 0, 1).getTime();
+  if (yearOnly) return new Date(parseInt(yearOnly[1], 10), 11, 1).getTime();
   const d = new Date(dateStr);
   return isNaN(d.getTime()) ? 0 : d.getTime();
 }
@@ -68,7 +68,7 @@ async function getData() {
     ]);
 
     const certifications = [...rawCerts].sort(
-      (a, b) => parseCertDate(a.date) - parseCertDate(b.date)
+      (a, b) => parseCertDate(b.date) - parseCertDate(a.date)
     );
 
     return {
