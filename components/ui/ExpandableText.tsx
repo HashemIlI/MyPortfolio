@@ -26,25 +26,57 @@ export default function ExpandableText({
   t,
 }: ExpandableTextProps) {
   const textRef = useRef<HTMLParagraphElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [isClamped, setIsClamped] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setExpanded(false);
     const el = textRef.current;
-    if (!el) return;
+    const wrapperEl = wrapperRef.current;
+    if (!el || !wrapperEl) return;
+
+    let raf2: number;
+    let raf3: number;
 
     const check = () => {
-      if (!el) return;
-      // scrollHeight always reflects full content height regardless of
-      // overflow:hidden or -webkit-line-clamp, so this comparison is reliable.
-      setIsClamped(el.scrollHeight > collapsedHeight + 1);
+      // Cancel any pending two-phase measurement from a previous check call
+      // (e.g. rapid-fire resize events) so we only act on the latest layout.
+      cancelAnimationFrame(raf2);
+      cancelAnimationFrame(raf3);
+
+      const fullHeight = el.scrollHeight;
+
+      if (fullHeight <= collapsedHeight + 1) {
+        setIsClamped(false);
+        return;
+      }
+
+      // Phase 1: apply standard clamp so the CSS grid can equalize card
+      // heights based on clamped content before we measure available space.
+      setIsClamped(true);
+
+      // Phase 2: after React commits the clamped state (frame N→N+1) and the
+      // browser re-equalizes grid row heights (frame N+1→N+2), measure how
+      // much space the flex-1 wrapper was actually allocated. Un-clamp if the
+      // full text fits within that space — it won't make the card any taller.
+      raf2 = requestAnimationFrame(() => {
+        raf3 = requestAnimationFrame(() => {
+          const available = wrapperEl.clientHeight;
+          // Fall back to collapsedHeight if the flex measurement isn't ready
+          // (e.g. component used outside a definite-height flex container).
+          const safeAvailable = available > collapsedHeight ? available : collapsedHeight;
+          setIsClamped(fullHeight > safeAvailable + 1);
+        });
+      });
     };
 
-    const frame = requestAnimationFrame(check);
+    const raf1 = requestAnimationFrame(check);
     window.addEventListener('resize', check);
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      cancelAnimationFrame(raf3);
       window.removeEventListener('resize', check);
     };
   }, [text, collapsedHeight]);
@@ -52,7 +84,7 @@ export default function ExpandableText({
   if (!text) return null;
 
   return (
-    <div className={wrapperClassName}>
+    <div ref={wrapperRef} className={wrapperClassName}>
       <motion.div
         initial={false}
         animate={{ height: isClamped && !expanded ? collapsedHeight : 'auto' }}
