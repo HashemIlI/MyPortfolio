@@ -150,7 +150,7 @@ export default async function Home() {
     skills: <Skills skills={skills} />,
     experience: <Experience experiences={experience} />,
     education: <EducationSection education={education} />,
-    projects: <Projects projects={projects} categoryGroups={categoryGroups} />,
+    projects: <Projects projects={projects} categoryGroups={categoryGroups} displayMode={(settings?.projectsDisplayMode as 'selected' | 'grouped') ?? 'selected'} />,
     certifications: <Certifications certifications={certifications} />,
     contact: <Contact profile={profile} />,
   };

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { Bookmark, Eye, EyeOff, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { PROJECT_CATEGORIES } from '@/lib/content/project';
 import type { ProjectData } from '@/lib/content/project';
@@ -120,6 +120,26 @@ export default function ProjectsAdminPage() {
     }
   }
 
+  async function handleToggleFeatured(id: string, current: boolean) {
+    try {
+      await fetchJson<ProjectData>(`/api/projects/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featuredOnHomepage: !current }),
+      });
+      toast({
+        title: !current ? 'Added to Selected Work' : 'Removed from Selected Work',
+        variant: 'success',
+      });
+      load();
+    } catch (error) {
+      toast({
+        title: error instanceof Error ? error.message : 'Update failed',
+        variant: 'destructive',
+      });
+    }
+  }
+
   const s = (k: keyof FormData) => (form[k] as string) ?? '';
   const set = (k: keyof FormData, v: string | boolean | number) => setForm((f) => ({ ...f, [k]: v }));
   const homepageGroups = buildProjectDisplayGroups(projects, categoryGroups, {
@@ -233,6 +253,13 @@ export default function ProjectsAdminPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => handleToggleFeatured(String(p._id), !!p.featuredOnHomepage)}
+                      className={`mr-3 inline-flex items-center gap-1 text-xs transition-colors ${p.featuredOnHomepage ? 'text-primary hover:text-primary/70' : 'text-gray-500 hover:text-primary'}`}
+                      title={p.featuredOnHomepage ? 'Remove from Selected Work' : 'Add to Selected Work'}
+                    >
+                      <Bookmark className={`h-3.5 w-3.5 ${p.featuredOnHomepage ? 'fill-current' : ''}`} />
+                    </button>
                     <button onClick={() => openEdit(p)} className="mr-3 inline-flex items-center gap-1 text-xs text-gray-400 transition-colors hover:text-emerald-400">
                       <Pencil className="h-3.5 w-3.5" />
                     </button>

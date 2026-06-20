@@ -42,6 +42,7 @@ export interface ISiteSettings extends Document {
   maintenanceMode: boolean;
   footerTextEn: string;
   footerTextAr: string;
+  projectsDisplayMode: 'selected' | 'grouped';
 }
 
 const SectionSettingSchema = new Schema<ISectionSetting>(
@@ -114,6 +115,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       default: { googleAnalyticsId: '', enabled: false },
     },
     maintenanceMode: { type: Boolean, default: false },
+    projectsDisplayMode: { type: String, enum: ['selected', 'grouped'], default: 'selected' },
     footerTextEn: {
       type: String,
       default: '© 2025 Ahmed Fouad Hashem. All rights reserved.',

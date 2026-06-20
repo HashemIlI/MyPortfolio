@@ -15,6 +15,7 @@ import { buildProjectDisplayGroups } from '@/lib/content/project-display';
 interface ProjectsProps {
   projects: ProjectData[];
   categoryGroups: CategoryGroupData[];
+  displayMode?: 'selected' | 'grouped';
 }
 
 const CATEGORY_AR: Record<string, string> = {
@@ -34,11 +35,17 @@ const GRID_TRANSITION = { duration: 0.24, ease: 'easeInOut' as const };
 const EXTRA_CARD_TRANSITION = { duration: 0.2, ease: 'easeInOut' as const };
 const DETAILS_TRANSITION = { duration: 0.22, ease: 'easeInOut' as const };
 const TECH_STACK_LIMIT = 5;
+const SELECTED_INITIAL = 3;
 
-export default function Projects({ projects, categoryGroups }: ProjectsProps) {
+export default function Projects({ projects, categoryGroups, displayMode = 'selected' }: ProjectsProps) {
   const { language, t } = useLanguage();
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [showAllSelected, setShowAllSelected] = useState(false);
+
+  useEffect(() => {
+    setShowAllSelected(false);
+  }, [displayMode]);
 
   const toggleExpandedProject = (id: string) => {
     setExpandedProjects((current) => ({ ...current, [id]: !current[id] }));
@@ -47,6 +54,19 @@ export default function Projects({ projects, categoryGroups }: ProjectsProps) {
   const toggleCategory = (category: string) => {
     setExpandedCategories((current) => ({ ...current, [category]: !current[category] }));
   };
+
+  const featuredProjects = useMemo(() => {
+    if (displayMode !== 'selected') return [];
+    return [...projects]
+      .filter((p) => p.featuredOnHomepage)
+      .sort((a, b) => {
+        const oa = (a.homepageCategoryOrder ?? 999) - (b.homepageCategoryOrder ?? 999);
+        if (oa !== 0) return oa;
+        const od = (a.displayOrder ?? 0) - (b.displayOrder ?? 0);
+        if (od !== 0) return od;
+        return (b.createdAt || '').localeCompare(a.createdAt || '');
+      });
+  }, [projects, displayMode]);
 
   const groupedProjects = useMemo(
     () =>
@@ -64,6 +84,10 @@ export default function Projects({ projects, categoryGroups }: ProjectsProps) {
     [projects, categoryGroups]
   );
 
+  const visibleFeatured = showAllSelected ? featuredProjects : featuredProjects.slice(0, SELECTED_INITIAL);
+  const hiddenFeatured = featuredProjects.slice(SELECTED_INITIAL);
+  const hasMoreFeatured = featuredProjects.length > SELECTED_INITIAL;
+
   return (
     <SectionWrapper id="projects" className="bg-muted/10 py-14 lg:py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -76,47 +100,35 @@ export default function Projects({ projects, categoryGroups }: ProjectsProps) {
           </h2>
         </div>
 
-        <div className="space-y-10">
-          {groupedProjects.map(({ id, name, description, projects: items, defaultItems, extraItems }) => {
-            const isCategoryExpanded = !!expandedCategories[id];
-            const hiddenCount = Math.max(items.length - defaultItems.length, 0);
-
-            return (
-              <section key={id} className="space-y-4">
-                <div className="border-b border-border/60 pb-3">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    {language === 'ar' ? (CATEGORY_AR[name] || name) : name}
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {description || t(
-                      'A curated selection of work from this category.',
-                      'مجموعة مختارة من الأعمال ضمن هذه الفئة.'
-                    )}
-                  </p>
-                </div>
-
+        {displayMode === 'selected' ? (
+          <>
+            {featuredProjects.length === 0 ? (
+              <p className="py-12 text-center text-muted-foreground">
+                {t('No featured projects yet.', 'لا توجد مشاريع مميزة بعد.')}
+              </p>
+            ) : (
+              <>
                 <motion.div
                   layout="position"
                   transition={GRID_TRANSITION}
                   className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
                 >
-                  {defaultItems.map((project) => (
+                  {visibleFeatured.map((project) => (
                     <div key={String(project._id)} className="h-full">
                       <ProjectCard
                         project={project}
                         language={language}
                         t={t}
                         categoryAr={CATEGORY_AR}
-                        displayCategoryName={name}
+                        displayCategoryName={project.category}
                         isExpanded={!!expandedProjects[String(project._id)]}
                         onToggleExpanded={toggleExpandedProject}
                       />
                     </div>
                   ))}
-
                   <AnimatePresence initial={false}>
-                    {isCategoryExpanded &&
-                      extraItems.map((project) => (
+                    {showAllSelected &&
+                      hiddenFeatured.map((project) => (
                         <motion.div
                           key={String(project._id)}
                           layout="position"
@@ -131,7 +143,7 @@ export default function Projects({ projects, categoryGroups }: ProjectsProps) {
                             language={language}
                             t={t}
                             categoryAr={CATEGORY_AR}
-                            displayCategoryName={name}
+                            displayCategoryName={project.category}
                             isExpanded={!!expandedProjects[String(project._id)]}
                             onToggleExpanded={toggleExpandedProject}
                           />
@@ -139,34 +151,123 @@ export default function Projects({ projects, categoryGroups }: ProjectsProps) {
                       ))}
                   </AnimatePresence>
                 </motion.div>
-
-                {hiddenCount > 0 && (
-                  <div className="flex justify-center pt-1">
+                {hasMoreFeatured && (
+                  <div className="mt-6 flex justify-center">
                     <button
                       type="button"
-                      onClick={() => toggleCategory(id)}
+                      onClick={() => setShowAllSelected((c) => !c)}
                       className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/8 px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary/35 hover:bg-primary/12 hover:text-primary/90"
                     >
                       <span>
-                        {isCategoryExpanded
+                        {showAllSelected
                           ? t('Show Less', 'عرض أقل')
-                          : t('View All Projects', 'عرض كل المشاريع')}
+                          : t('Show More', 'عرض المزيد')}
                       </span>
                       <ChevronDown
-                        className={`h-4 w-4 transition-transform ${isCategoryExpanded ? 'rotate-180' : ''}`}
+                        className={`h-4 w-4 transition-transform ${showAllSelected ? 'rotate-180' : ''}`}
                       />
                     </button>
                   </div>
                 )}
-              </section>
-            );
-          })}
-        </div>
+              </>
+            )}
+          </>
+        ) : (
+          // ── Grouped mode ── (existing behaviour, kept intact) ─────────────────
+          <>
+            <div className="space-y-10">
+              {groupedProjects.map(({ id, name, description, projects: items, defaultItems, extraItems }) => {
+                const isCategoryExpanded = !!expandedCategories[id];
+                const hiddenCount = Math.max(items.length - defaultItems.length, 0);
 
-        {groupedProjects.length === 0 && (
-          <p className="py-12 text-center text-muted-foreground">
-            {t('No projects available yet.', 'لا توجد مشاريع متاحة بعد.')}
-          </p>
+                return (
+                  <section key={id} className="space-y-4">
+                    <div className="border-b border-border/60 pb-3">
+                      <h3 className="text-xl font-semibold text-foreground">
+                        {language === 'ar' ? (CATEGORY_AR[name] || name) : name}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {description || t(
+                          'A curated selection of work from this category.',
+                          'مجموعة مختارة من الأعمال ضمن هذه الفئة.'
+                        )}
+                      </p>
+                    </div>
+
+                    <motion.div
+                      layout="position"
+                      transition={GRID_TRANSITION}
+                      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6"
+                    >
+                      {defaultItems.map((project) => (
+                        <div key={String(project._id)} className="h-full">
+                          <ProjectCard
+                            project={project}
+                            language={language}
+                            t={t}
+                            categoryAr={CATEGORY_AR}
+                            displayCategoryName={name}
+                            isExpanded={!!expandedProjects[String(project._id)]}
+                            onToggleExpanded={toggleExpandedProject}
+                          />
+                        </div>
+                      ))}
+
+                      <AnimatePresence initial={false}>
+                        {isCategoryExpanded &&
+                          extraItems.map((project) => (
+                            <motion.div
+                              key={String(project._id)}
+                              layout="position"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 6 }}
+                              transition={EXTRA_CARD_TRANSITION}
+                              className="h-full overflow-hidden"
+                            >
+                              <ProjectCard
+                                project={project}
+                                language={language}
+                                t={t}
+                                categoryAr={CATEGORY_AR}
+                                displayCategoryName={name}
+                                isExpanded={!!expandedProjects[String(project._id)]}
+                                onToggleExpanded={toggleExpandedProject}
+                              />
+                            </motion.div>
+                          ))}
+                      </AnimatePresence>
+                    </motion.div>
+
+                    {hiddenCount > 0 && (
+                      <div className="flex justify-center pt-1">
+                        <button
+                          type="button"
+                          onClick={() => toggleCategory(id)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/8 px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary/35 hover:bg-primary/12 hover:text-primary/90"
+                        >
+                          <span>
+                            {isCategoryExpanded
+                              ? t('Show Less', 'عرض أقل')
+                              : t('View All Projects', 'عرض كل المشاريع')}
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform ${isCategoryExpanded ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                      </div>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+
+            {groupedProjects.length === 0 && (
+              <p className="py-12 text-center text-muted-foreground">
+                {t('No projects available yet.', 'لا توجد مشاريع متاحة بعد.')}
+              </p>
+            )}
+          </>
         )}
       </div>
     </SectionWrapper>

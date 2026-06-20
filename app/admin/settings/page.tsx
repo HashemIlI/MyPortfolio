@@ -377,6 +377,21 @@ export default function SettingsAdminPage() {
           </div>
         </Section>
 
+        <Section title="Content">
+          <p className="-mt-1 text-xs text-muted-foreground">
+            Control how content is presented on the public site.
+          </p>
+          <SelectField
+            label="Projects Display Mode"
+            value={(data.projectsDisplayMode as string) || 'selected'}
+            onChange={(value) => set('projectsDisplayMode', value)}
+            options={[
+              { label: 'Selected Work — flat list of featured projects', value: 'selected' },
+              { label: 'Grouped by Category — category group layout', value: 'grouped' },
+            ]}
+          />
+        </Section>
+
         <Section title="Analytics">
           <label className="flex cursor-pointer items-center gap-3">
             <input
