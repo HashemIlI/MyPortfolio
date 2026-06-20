@@ -57,8 +57,15 @@ export default function Projects({ projects, categoryGroups, displayMode = 'sele
 
   const featuredProjects = useMemo(() => {
     if (displayMode !== 'selected') return [];
+    const seen = new Set<string>();
     return [...projects]
-      .filter((p) => p.featuredOnHomepage)
+      .filter((p) => {
+        if (!p.featuredOnHomepage) return false;
+        const id = String(p._id);
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      })
       .sort((a, b) => {
         const oa = (a.homepageCategoryOrder ?? 999) - (b.homepageCategoryOrder ?? 999);
         if (oa !== 0) return oa;
