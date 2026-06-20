@@ -91,7 +91,7 @@ export default function Projects({ projects, categoryGroups, displayMode = 'sele
     [projects, categoryGroups]
   );
 
-  const visibleFeatured = showAllSelected ? featuredProjects : featuredProjects.slice(0, SELECTED_INITIAL);
+  const visibleFeatured = featuredProjects.slice(0, SELECTED_INITIAL);
   const hiddenFeatured = featuredProjects.slice(SELECTED_INITIAL);
   const hasMoreFeatured = featuredProjects.length > SELECTED_INITIAL;
 
