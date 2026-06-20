@@ -102,7 +102,7 @@ function CertCard({
       </div>
 
       <div className="flex flex-1 flex-col">
-        <h3 className="text-lg font-semibold leading-snug text-card-foreground">{name}</h3>
+        <h3 className="line-clamp-2 min-h-[3.5rem] text-lg font-semibold leading-snug text-card-foreground">{name}</h3>
 
         <div className="mt-3 flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-primary/90">{cert.issuer}</span>
