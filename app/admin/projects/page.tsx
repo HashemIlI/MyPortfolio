@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Bookmark, Eye, EyeOff, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { Bookmark, Eye, EyeOff, GripVertical, Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { toast } from '@/hooks/use-toast';
 import { PROJECT_CATEGORIES } from '@/lib/content/project';
 import type { ProjectData } from '@/lib/content/project';
@@ -40,6 +43,8 @@ export default function ProjectsAdminPage() {
   const [formTab, setFormTab] = useState('basic');
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [homepageItems, setHomepageItems] = useState<ProjectData[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   async function load() {
     try {
@@ -59,6 +64,41 @@ export default function ProjectsAdminPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    setHomepageItems(
+      projects
+        .filter((p) => p.featuredOnHomepage)
+        .sort((a, b) => (a.homepageCategoryOrder ?? 999) - (b.homepageCategoryOrder ?? 999))
+    );
+  }, [projects]);
+
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = homepageItems.findIndex((p) => String(p._id) === active.id);
+    const newIndex = homepageItems.findIndex((p) => String(p._id) === over.id);
+    const reordered = arrayMove(homepageItems, oldIndex, newIndex);
+    const prev = homepageItems;
+    setHomepageItems(reordered);
+    setSavingOrder(true);
+    try {
+      for (let i = 0; i < reordered.length; i++) {
+        await fetchJson<ProjectData>(`/api/projects/${reordered[i]._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ homepageCategoryOrder: i }),
+        });
+      }
+      toast({ title: 'Homepage order saved', variant: 'success' });
+      load();
+    } catch {
+      setHomepageItems(prev);
+      toast({ title: 'Failed to save order — reverted', variant: 'destructive' });
+    } finally {
+      setSavingOrder(false);
+    }
+  }
 
   function openAdd() {
     setEditing(null);
@@ -181,6 +221,31 @@ export default function ProjectsAdminPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mb-5 rounded-xl border border-white/10 bg-[#101310]">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-100">Homepage Order</h2>
+            <p className="mt-0.5 text-xs text-gray-500">Drag to set the display order of homepage-featured projects</p>
+          </div>
+          {savingOrder && <span className="text-xs text-gray-500 animate-pulse">Saving…</span>}
+        </div>
+        {homepageItems.length === 0 ? (
+          <div className="px-4 py-6 text-center text-sm text-gray-500">
+            No projects marked for homepage. Use the <Bookmark className="inline h-3 w-3 align-text-bottom" /> button in the table below to add them.
+          </div>
+        ) : (
+          <div className="space-y-2 p-4">
+            <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={homepageItems.map((p) => String(p._id))} strategy={verticalListSortingStrategy}>
+                {homepageItems.map((p, i) => (
+                  <SortableProjectRow key={String(p._id)} project={p} index={i} />
+                ))}
+              </SortableContext>
+            </DndContext>
+          </div>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-white/10 bg-[#101310]">
@@ -448,5 +513,37 @@ function CheckF({ label, checked, set }: { label: string; checked: boolean; set:
       <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} className="h-4 w-4 rounded accent-emerald-500" />
       <span className="text-sm text-gray-300">{label}</span>
     </label>
+  );
+}
+
+function SortableProjectRow({ project, index }: { project: ProjectData; index: number }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(project._id) });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
+      className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2.5"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none text-gray-500 hover:text-gray-300 active:cursor-grabbing"
+        aria-label="Drag to reorder"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="w-5 shrink-0 text-center text-xs font-medium text-gray-500">{index + 1}</span>
+      <div className="flex h-9 w-11 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black/30">
+        {project.thumbnail ? (
+          <img src={project.thumbnail} alt={project.titleEn} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-[9px] text-gray-600">No img</div>
+        )}
+      </div>
+      <span className="min-w-0 flex-1 truncate text-sm text-gray-200">{project.titleEn}</span>
+      <span className="shrink-0 rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">
+        {project.category}
+      </span>
+    </div>
   );
 }
