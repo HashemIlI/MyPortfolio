@@ -142,7 +142,7 @@ export default function Hero({ profile }: HeroProps) {
 
             {profile?.cvFile && downloadLabel && (
               <Button variant="outline" size="lg" asChild>
-                <a href={profile.cvFile} download>
+                <a href="/api/download-cv" download>
                   <Download className="h-4 w-4" />
                   {downloadLabel}
                 </a>
