@@ -30,7 +30,7 @@ export interface ProjectData {
   shortSummaryAr: string;
   executiveSummaryEn: string;
   executiveSummaryAr: string;
-  category: ProjectCategory;
+  category: string;
   problemStatementEn: string;
   problemStatementAr: string;
   businessObjectiveEn: string;

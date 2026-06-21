@@ -33,7 +33,7 @@ export interface IProject extends Document {
   shortSummaryAr: string;
   executiveSummaryEn: string;
   executiveSummaryAr: string;
-  category: ProjectCategory;
+  category: string;
   problemStatementEn: string;
   problemStatementAr: string;
   businessObjectiveEn: string;
@@ -92,7 +92,7 @@ const ProjectSchema = new Schema<IProject>(
     shortSummaryAr: { type: String, default: '' },
     executiveSummaryEn: { type: String, default: '' },
     executiveSummaryAr: { type: String, default: '' },
-    category: { type: String, enum: PROJECT_CATEGORIES, default: 'Other' },
+    category: { type: String, default: '' },
     problemStatementEn: { type: String, default: '' },
     problemStatementAr: { type: String, default: '' },
     businessObjectiveEn: { type: String, default: '' },

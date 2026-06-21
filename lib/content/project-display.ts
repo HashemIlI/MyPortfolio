@@ -1,4 +1,4 @@
-import { PROJECT_CATEGORIES, type ProjectCategory, type ProjectData } from './project';
+import type { ProjectData } from './project';
 import type { CategoryGroupData, ProjectDisplayGroup } from './category-group';
 
 const sortProjectsForDisplay = (projects: ProjectData[]) =>
@@ -22,55 +22,52 @@ export function buildProjectDisplayGroups(
   options: { includeHidden?: boolean; includeEmpty?: boolean } = {}
 ): ProjectDisplayGroup[] {
   const { includeHidden = false, includeEmpty = false } = options;
-  const configuredCategories = new Set<ProjectCategory>();
-  categoryGroups.forEach((group) => {
-    group.sourceCategories.forEach((category) => configuredCategories.add(category));
-  });
+  const configuredSlugs = new Set(categoryGroups.map((g) => g.slug));
 
   const activeGroups = [...categoryGroups]
     .filter((group) => includeHidden || group.visible)
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   const displayGroups: ProjectDisplayGroup[] = activeGroups
-    .map((group) => {
-      const sourceCategories = new Set(group.sourceCategories);
-      const items = sortProjectsForDisplay(
-        projects.filter((project) => sourceCategories.has(project.category))
-      );
-
-      return {
-        id: String(group._id),
-        name: group.name,
-        slug: group.slug,
-        description: group.description,
-        sourceCategories: group.sourceCategories,
-        visible: group.visible,
-        sortOrder: group.sortOrder,
-        fallback: false,
-        projects: items,
-      };
-    })
+    .map((group) => ({
+      id: String(group._id),
+      name: group.name,
+      slug: group.slug,
+      description: group.description,
+      sourceCategories: group.sourceCategories,
+      visible: group.visible,
+      sortOrder: group.sortOrder,
+      fallback: false,
+      projects: sortProjectsForDisplay(
+        projects.filter((project) => project.category === group.slug)
+      ),
+    }))
     .filter((group) => includeEmpty || group.projects.length > 0);
 
-  const projectCategories = new Set(projects.map((project) => project.category));
-  PROJECT_CATEGORIES.forEach((category, index) => {
-    if (configuredCategories.has(category) || !projectCategories.has(category)) return;
-
-    const items = sortProjectsForDisplay(projects.filter((project) => project.category === category));
-    if (!includeEmpty && items.length === 0) return;
-
-    displayGroups.push({
-      id: `fallback-${category}`,
-      name: category,
-      slug: category.toLowerCase().replace(/[\s_]+/g, '-'),
-      description: '',
-      sourceCategories: [category],
-      visible: true,
-      sortOrder: 10000 + index,
-      fallback: true,
-      projects: items,
+  // Fallback: projects whose category slug doesn't match any configured group
+  const ungrouped = projects.filter((p) => !configuredSlugs.has(p.category));
+  if (ungrouped.length > 0) {
+    const byCategory = new Map<string, ProjectData[]>();
+    ungrouped.forEach((p) => {
+      const key = p.category || 'uncategorised';
+      if (!byCategory.has(key)) byCategory.set(key, []);
+      byCategory.get(key)!.push(p);
     });
-  });
+    byCategory.forEach((items, key) => {
+      if (!includeEmpty && items.length === 0) return;
+      displayGroups.push({
+        id: `fallback-${key}`,
+        name: key,
+        slug: key.toLowerCase().replace(/[\s_]+/g, '-'),
+        description: '',
+        sourceCategories: [],
+        visible: true,
+        sortOrder: 10000,
+        fallback: true,
+        projects: sortProjectsForDisplay(items),
+      });
+    });
+  }
 
   return displayGroups;
 }

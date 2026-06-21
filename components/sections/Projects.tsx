@@ -43,6 +43,12 @@ export default function Projects({ projects, categoryGroups, displayMode = 'sele
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [showAllSelected, setShowAllSelected] = useState(false);
 
+  const slugToGroupName = useMemo(
+    () => new Map(categoryGroups.map((g) => [g.slug, g.name])),
+    [categoryGroups]
+  );
+  const displayCategory = (slug: string) => slugToGroupName.get(slug) ?? slug;
+
   useEffect(() => {
     setShowAllSelected(false);
   }, [displayMode]);
@@ -127,7 +133,7 @@ export default function Projects({ projects, categoryGroups, displayMode = 'sele
                         language={language}
                         t={t}
                         categoryAr={CATEGORY_AR}
-                        displayCategoryName={project.category}
+                        displayCategoryName={displayCategory(project.category)}
                         isExpanded={!!expandedProjects[String(project._id)]}
                         onToggleExpanded={toggleExpandedProject}
                       />
@@ -150,7 +156,7 @@ export default function Projects({ projects, categoryGroups, displayMode = 'sele
                             language={language}
                             t={t}
                             categoryAr={CATEGORY_AR}
-                            displayCategoryName={project.category}
+                            displayCategoryName={displayCategory(project.category)}
                             isExpanded={!!expandedProjects[String(project._id)]}
                             onToggleExpanded={toggleExpandedProject}
                           />

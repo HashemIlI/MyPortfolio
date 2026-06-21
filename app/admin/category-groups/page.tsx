@@ -70,14 +70,6 @@ export default function CategoryGroupsAdminPage() {
     [projects, groups]
   );
 
-  const projectCountsByCategory = useMemo(
-    () =>
-      projects.reduce<Record<string, number>>((acc, project) => {
-        acc[project.category] = (acc[project.category] || 0) + 1;
-        return acc;
-      }, {}),
-    [projects]
-  );
 
   function openAdd() {
     setEditing(null);
@@ -260,7 +252,7 @@ export default function CategoryGroupsAdminPage() {
                               key={category}
                               className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary"
                             >
-                              {category} ({projectCountsByCategory[category] || 0})
+                              {category}
                             </span>
                           ))
                         ) : (

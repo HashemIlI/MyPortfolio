@@ -5,7 +5,6 @@ import { DndContext, closestCenter, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from '@/hooks/use-toast';
-import { PROJECT_CATEGORIES } from '@/lib/content/project';
 import type { ProjectData } from '@/lib/content/project';
 import type { CategoryGroupData } from '@/lib/content/category-group';
 import { buildProjectDisplayGroups } from '@/lib/content/project-display';
@@ -17,7 +16,7 @@ type FormData = Partial<ProjectData> & { toolsRaw?: string; metaKeywordsRaw?: st
 
 const EMPTY: FormData = {
   titleEn: '', titleAr: '', slug: '', shortSummaryEn: '', shortSummaryAr: '',
-  executiveSummaryEn: '', executiveSummaryAr: '', category: 'Machine Learning',
+  executiveSummaryEn: '', executiveSummaryAr: '', category: '',
   problemStatementEn: '', problemStatementAr: '', businessObjectiveEn: '', businessObjectiveAr: '',
   datasetOverviewEn: '', datasetOverviewAr: '', technicalApproachEn: '', technicalApproachAr: '',
   modelUsed: '', evaluationMetrics: '', resultsEn: '', resultsAr: '', toolsRaw: '',
@@ -102,7 +101,8 @@ export default function ProjectsAdminPage() {
 
   function openAdd() {
     setEditing(null);
-    setForm(EMPTY);
+    const firstGroupSlug = categoryGroups.find((g) => g.visible)?.slug ?? '';
+    setForm({ ...EMPTY, category: firstGroupSlug });
     setFormTab('basic');
     setModal(true);
   }
@@ -182,6 +182,7 @@ export default function ProjectsAdminPage() {
 
   const s = (k: keyof FormData) => (form[k] as string) ?? '';
   const set = (k: keyof FormData, v: string | boolean | number) => setForm((f) => ({ ...f, [k]: v }));
+  const groupName = (slug: string) => categoryGroups.find((g) => g.slug === slug)?.name ?? slug;
   const homepageGroups = buildProjectDisplayGroups(projects, categoryGroups, {
     includeHidden: true,
     includeEmpty: false,
@@ -240,7 +241,7 @@ export default function ProjectsAdminPage() {
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={homepageItems.map((p) => String(p._id))} strategy={verticalListSortingStrategy}>
                 {homepageItems.map((p, i) => (
-                  <SortableProjectRow key={String(p._id)} project={p} index={i} />
+                  <SortableProjectRow key={String(p._id)} project={p} index={i} groupName={groupName} />
                 ))}
               </SortableContext>
             </DndContext>
@@ -285,7 +286,7 @@ export default function ProjectsAdminPage() {
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 md:table-cell">
-                    <span className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">{p.category}</span>
+                    <span className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">{groupName(p.category)}</span>
                   </td>
                   <td className="hidden px-4 py-3 lg:table-cell">
                     <div className="flex flex-wrap gap-1">
@@ -354,9 +355,11 @@ export default function ProjectsAdminPage() {
                   </div>
                   <F label="Slug" val={s('slug')} set={(v) => set('slug', v)} placeholder="auto-generated" />
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-gray-400">Category</label>
+                    <label className="mb-1.5 block text-xs font-medium text-gray-400">Category Group</label>
                     <select value={s('category')} onChange={(e) => set('category', e.target.value)} className="admin-control w-full rounded-lg px-3 py-2 text-sm">
-                      {PROJECT_CATEGORIES.map((c) => <option key={c} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>{c}</option>)}
+                      {categoryGroups.filter((g) => g.visible).map((g) => (
+                        <option key={g._id} value={g.slug} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>{g.name}</option>
+                      ))}
                     </select>
                   </div>
                   <T label="Short Summary (EN)" val={s('shortSummaryEn')} set={(v) => set('shortSummaryEn', v)} rows={2} />
@@ -495,7 +498,7 @@ function CheckF({ label, checked, set }: { label: string; checked: boolean; set:
   );
 }
 
-function SortableProjectRow({ project, index }: { project: ProjectData; index: number }) {
+function SortableProjectRow({ project, index, groupName }: { project: ProjectData; index: number; groupName: (slug: string) => string }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(project._id) });
   return (
     <div
@@ -521,7 +524,7 @@ function SortableProjectRow({ project, index }: { project: ProjectData; index: n
       </div>
       <span className="min-w-0 flex-1 truncate text-sm text-gray-200">{project.titleEn}</span>
       <span className="shrink-0 rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">
-        {project.category}
+        {groupName(project.category)}
       </span>
     </div>
   );
