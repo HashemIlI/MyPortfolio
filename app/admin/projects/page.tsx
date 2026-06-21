@@ -261,7 +261,6 @@ export default function ProjectsAdminPage() {
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-gray-400">Project</th>
                 <th className="hidden px-4 py-3 text-left font-medium text-gray-400 md:table-cell">Category</th>
-                <th className="hidden px-4 py-3 text-left font-medium text-gray-400 xl:table-cell">Homepage</th>
                 <th className="hidden px-4 py-3 text-left font-medium text-gray-400 lg:table-cell">Tools</th>
                 <th className="px-4 py-3 text-center font-medium text-gray-400">Flags</th>
                 <th className="px-4 py-3 text-right font-medium text-gray-400">Actions</th>
@@ -287,20 +286,6 @@ export default function ProjectsAdminPage() {
                   </td>
                   <td className="hidden px-4 py-3 md:table-cell">
                     <span className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">{p.category}</span>
-                  </td>
-                  <td className="hidden px-4 py-3 xl:table-cell">
-                    {p.featuredOnHomepage ? (
-                      <div className="flex flex-col gap-1">
-                        <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary">
-                          Homepage
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Order #{p.homepageCategoryOrder ?? 999}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-500">Not shown</span>
-                    )}
                   </td>
                   <td className="hidden px-4 py-3 lg:table-cell">
                     <div className="flex flex-wrap gap-1">
@@ -383,13 +368,7 @@ export default function ProjectsAdminPage() {
                     <CheckF label="Show on Homepage" checked={Boolean(form.featuredOnHomepage)} set={(v) => set('featuredOnHomepage', v)} />
                     <CheckF label="Visible" checked={Boolean(form.visible)} set={(v) => set('visible', v)} />
                   </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_8rem]">
-                    <div className="rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-                      Homepage shows the top 3 projects in each category sorted by Homepage Order.
-                    </div>
-                    <F label="Homepage Order" val={String(form.homepageCategoryOrder ?? 999)} set={(v) => set('homepageCategoryOrder', Number(v))} type="number" />
-                    <F label="Display Order" val={String(form.displayOrder ?? 0)} set={(v) => set('displayOrder', Number(v))} type="number" />
-                  </div>
+                  <F label="Display Order" val={String(form.displayOrder ?? 0)} set={(v) => set('displayOrder', Number(v))} type="number" />
                 </>
               )}
 
