@@ -21,13 +21,6 @@ export const SKILL_CATEGORIES: SkillCategory[] = [
   'Soft Skills',
 ];
 
-export const SKILL_LEVEL_VALUES: Record<SkillLevel, number> = {
-  Beginner: 25,
-  Intermediate: 50,
-  Advanced: 75,
-  Expert: 95,
-};
-
 export interface ISkill extends Document {
   nameEn: string;
   nameAr: string;

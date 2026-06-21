@@ -13,14 +13,3 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function truncate(str: string, n: number): string {
-  return str.length > n ? str.slice(0, n - 1) + '…' : str;
-}
-
-export function formatDate(date: string | Date): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}

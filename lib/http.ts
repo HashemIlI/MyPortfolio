@@ -1,4 +1,4 @@
-export async function readJsonResponse<T>(response: Response): Promise<T | null> {
+async function readJsonResponse<T>(response: Response): Promise<T | null> {
   const text = await response.text();
 
   if (!text.trim()) {

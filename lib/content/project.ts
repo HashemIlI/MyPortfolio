@@ -1,26 +1,3 @@
-export type ProjectCategory =
-  | 'Machine Learning'
-  | 'Deep Learning'
-  | 'NLP'
-  | 'Computer Vision'
-  | 'Data Analysis'
-  | 'Business Intelligence'
-  | 'Dashboard'
-  | 'Web Scraping'
-  | 'Other';
-
-export const PROJECT_CATEGORIES: ProjectCategory[] = [
-  'Machine Learning',
-  'Deep Learning',
-  'NLP',
-  'Computer Vision',
-  'Data Analysis',
-  'Business Intelligence',
-  'Dashboard',
-  'Web Scraping',
-  'Other',
-];
-
 export interface ProjectData {
   _id: string;
   titleEn: string;

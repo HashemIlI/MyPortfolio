@@ -10,15 +10,6 @@ function getMongoUri(): string {
   return uri;
 }
 
-export function getMongoTarget(): string {
-  try {
-    const uri = new URL(getMongoUri());
-    return uri.host || 'configured MongoDB deployment';
-  } catch {
-    return 'configured MongoDB deployment';
-  }
-}
-
 // Cache the connection across hot reloads in development
 declare global {
   // eslint-disable-next-line no-var
@@ -52,5 +43,4 @@ async function connectDB(): Promise<typeof mongoose> {
   return cached.conn;
 }
 
-export { connectDB };
 export default connectDB;
