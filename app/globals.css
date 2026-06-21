@@ -197,6 +197,17 @@ html[data-typography-scale="large"] .themed-section h2 {
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
 }
 
+/* Native <select>: force solid bg so the OS-rendered dropdown list is readable */
+select.admin-control {
+  background: #141619;
+  color-scheme: dark;
+}
+
+select.admin-control option {
+  background-color: #141619;
+  color: #f0f4f8;
+}
+
 .admin-primary-btn {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));

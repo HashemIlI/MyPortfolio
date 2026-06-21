@@ -301,7 +301,7 @@ export default function SkillsAdminPage() {
                   className="admin-control w-full rounded-xl px-3 py-2 text-sm"
                 >
                   {SKILL_CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
+                    <option key={category} value={category} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>
                       {CATEGORY_META[category].title}
                     </option>
                   ))}

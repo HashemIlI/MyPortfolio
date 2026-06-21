@@ -305,8 +305,8 @@ export default function ProjectsAdminPage() {
                   <F label="Slug" val={s('slug')} set={(v) => set('slug', v)} placeholder="auto-generated" />
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-gray-400">Category</label>
-                    <select value={s('category')} onChange={(e) => set('category', e.target.value)} className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm text-gray-200 focus:border-emerald-500 focus:outline-none">
-                      {PROJECT_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                    <select value={s('category')} onChange={(e) => set('category', e.target.value)} className="admin-control w-full rounded-lg px-3 py-2 text-sm">
+                      {PROJECT_CATEGORIES.map((c) => <option key={c} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>{c}</option>)}
                     </select>
                   </div>
                   <T label="Short Summary (EN)" val={s('shortSummaryEn')} set={(v) => set('shortSummaryEn', v)} rows={2} />

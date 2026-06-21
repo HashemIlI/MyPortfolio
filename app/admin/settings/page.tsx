@@ -579,7 +579,7 @@ function SelectField({
         className="admin-control w-full rounded-xl px-3 py-2 text-sm"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>
             {option.label}
           </option>
         ))}
