@@ -352,7 +352,6 @@ export async function POST() {
     PROJECT_CATEGORIES.map((category, index) => ({
       name: category,
       slug: slugify(category),
-      sourceCategories: [category],
       visible: true,
       sortOrder: index,
     }))

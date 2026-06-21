@@ -2,20 +2,11 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import CategoryGroup from '@/models/CategoryGroup';
-import { PROJECT_CATEGORIES, type ProjectCategory } from '@/models/Project';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
 import { logAuditEvent } from '@/lib/audit-log';
 import { getApiErrorDetails } from '@/lib/api-error';
-import { readSanitizedJsonObject, sanitizeStringArray } from '@/lib/security';
+import { readSanitizedJsonObject } from '@/lib/security';
 import { slugify } from '@/lib/utils';
-
-const validCategories = new Set<string>(PROJECT_CATEGORIES);
-
-function normalizeSourceCategories(value: unknown): ProjectCategory[] {
-  return sanitizeStringArray(value).filter((category): category is ProjectCategory =>
-    validCategories.has(category)
-  );
-}
 
 export async function PUT(
   request: Request,
@@ -44,7 +35,6 @@ export async function PUT(
         name,
         slug: slugify(String(body.slug || name)),
         description: String(body.description || ''),
-        sourceCategories: normalizeSourceCategories(body.sourceCategories),
         visible: Boolean(body.visible),
         sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : 0,
       },
@@ -61,7 +51,7 @@ export async function PUT(
       entityId: id,
       actorUsername: authContext?.username ?? '',
       success: true,
-      details: { name: group.name, slug: group.slug, sourceCategories: group.sourceCategories },
+      details: { name: group.name, slug: group.slug },
     });
 
     return NextResponse.json(JSON.parse(JSON.stringify(group)));

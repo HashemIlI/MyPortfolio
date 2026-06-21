@@ -5,21 +5,14 @@ import { Eye, EyeOff, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { fetchJson } from '@/lib/http';
 import { slugify } from '@/lib/utils';
-import { PROJECT_CATEGORIES, type ProjectCategory, type ProjectData } from '@/lib/content/project';
+import type { ProjectData } from '@/lib/content/project';
 import type { CategoryGroupData } from '@/lib/content/category-group';
 import { buildProjectDisplayGroups } from '@/lib/content/project-display';
-
-type CategoryGroupResponse = {
-  groups: CategoryGroupData[];
-  sourceCategories: ProjectCategory[];
-  allSourceCategories: ProjectCategory[];
-};
 
 type FormData = {
   name: string;
   slug: string;
   description: string;
-  sourceCategories: ProjectCategory[];
   visible: boolean;
   sortOrder: number;
 };
@@ -28,7 +21,6 @@ const EMPTY_FORM: FormData = {
   name: '',
   slug: '',
   description: '',
-  sourceCategories: [],
   visible: true,
   sortOrder: 0,
 };
@@ -36,7 +28,6 @@ const EMPTY_FORM: FormData = {
 export default function CategoryGroupsAdminPage() {
   const [groups, setGroups] = useState<CategoryGroupData[]>([]);
   const [projects, setProjects] = useState<ProjectData[]>([]);
-  const [allSourceCategories, setAllSourceCategories] = useState<ProjectCategory[]>(PROJECT_CATEGORIES);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<CategoryGroupData | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
@@ -47,11 +38,10 @@ export default function CategoryGroupsAdminPage() {
   async function load() {
     try {
       const [groupData, projectData] = await Promise.all([
-        fetchJson<CategoryGroupResponse>('/api/category-groups?admin=true'),
+        fetchJson<{ groups: CategoryGroupData[] }>('/api/category-groups?admin=true'),
         fetchJson<ProjectData[]>('/api/projects?admin=true'),
       ]);
       setGroups(groupData.groups || []);
-      setAllSourceCategories(groupData.allSourceCategories || PROJECT_CATEGORIES);
       setProjects(Array.isArray(projectData) ? projectData : []);
     } catch (error) {
       toast({
@@ -86,20 +76,10 @@ export default function CategoryGroupsAdminPage() {
       name: group.name,
       slug: group.slug,
       description: group.description || '',
-      sourceCategories: group.sourceCategories || [],
       visible: group.visible,
       sortOrder: group.sortOrder ?? 0,
     });
     setModal(true);
-  }
-
-  function setSourceCategory(category: ProjectCategory, checked: boolean) {
-    setForm((current) => ({
-      ...current,
-      sourceCategories: checked
-        ? [...new Set([...current.sourceCategories, category])]
-        : current.sourceCategories.filter((item) => item !== category),
-    }));
   }
 
   async function handleSave() {
@@ -245,20 +225,6 @@ export default function CategoryGroupsAdminPage() {
                       {group.description && (
                         <p className="mt-2 text-sm leading-6 text-gray-400">{group.description}</p>
                       )}
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {group.sourceCategories.length > 0 ? (
-                          group.sourceCategories.map((category) => (
-                            <span
-                              key={category}
-                              className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary"
-                            >
-                              {category}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-amber-300">No source categories selected</span>
-                        )}
-                      </div>
                     </div>
                   </div>
 
@@ -297,9 +263,6 @@ export default function CategoryGroupsAdminPage() {
                   <p className="text-sm font-medium text-gray-100">{group.name}</p>
                   <span className="text-xs text-gray-500">{group.projects.length}</span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  {group.sourceCategories.join(' + ') || 'No categories'}
-                </p>
               </div>
             ))}
           </div>
@@ -347,25 +310,6 @@ export default function CategoryGroupsAdminPage() {
                 <span className="text-sm text-gray-300">Visible on public website</span>
               </label>
 
-              <div>
-                <p className="mb-2 text-xs font-medium text-gray-400">Source Categories</p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {allSourceCategories.map((category) => (
-                    <label
-                      key={category}
-                      className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2"
-                    >
-                      <span className="text-sm text-gray-300">{category}</span>
-                      <input
-                        type="checkbox"
-                        checked={form.sourceCategories.includes(category)}
-                        onChange={(event) => setSourceCategory(category, event.target.checked)}
-                        className="h-4 w-4 rounded accent-emerald-500"
-                      />
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-col-reverse justify-end gap-3 border-t border-white/10 p-4 pt-4 sm:flex-row sm:p-6 sm:pt-4">

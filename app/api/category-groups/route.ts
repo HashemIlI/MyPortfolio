@@ -2,39 +2,15 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import CategoryGroup from '@/models/CategoryGroup';
-import Project, { PROJECT_CATEGORIES, type ProjectCategory } from '@/models/Project';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
 import { logAuditEvent } from '@/lib/audit-log';
 import { getApiErrorDetails } from '@/lib/api-error';
-import { readSanitizedJsonObject, sanitizeStringArray } from '@/lib/security';
+import { readSanitizedJsonObject } from '@/lib/security';
 import { slugify } from '@/lib/utils';
-
-const validCategories = new Set<string>(PROJECT_CATEGORIES);
-
-function normalizeSourceCategories(value: unknown): ProjectCategory[] {
-  return sanitizeStringArray(value).filter((category): category is ProjectCategory =>
-    validCategories.has(category)
-  );
-}
 
 async function nextSortOrder() {
   const last = await CategoryGroup.findOne().sort({ sortOrder: -1 }).select('sortOrder').lean();
   return Number(last?.sortOrder ?? -1) + 1;
-}
-
-async function ensureDefaultCategoryGroups() {
-  const count = await CategoryGroup.countDocuments();
-  if (count > 0) return;
-
-  await CategoryGroup.insertMany(
-    PROJECT_CATEGORIES.map((category, index) => ({
-      name: category,
-      slug: slugify(category),
-      sourceCategories: [category],
-      visible: true,
-      sortOrder: index,
-    }))
-  );
 }
 
 export async function GET(request: Request) {
@@ -47,19 +23,11 @@ export async function GET(request: Request) {
     }
 
     await connectDB();
-    await ensureDefaultCategoryGroups();
 
     const query = adminMode ? {} : { visible: true };
-    const [groups, categories] = await Promise.all([
-      CategoryGroup.find(query).sort({ sortOrder: 1, createdAt: 1 }).lean(),
-      adminMode ? Project.distinct('category') : Promise.resolve([]),
-    ]);
+    const groups = await CategoryGroup.find(query).sort({ sortOrder: 1, createdAt: 1 }).lean();
 
-    return NextResponse.json({
-      groups: JSON.parse(JSON.stringify(groups)),
-      sourceCategories: adminMode ? categories : PROJECT_CATEGORIES,
-      allSourceCategories: PROJECT_CATEGORIES,
-    });
+    return NextResponse.json({ groups: JSON.parse(JSON.stringify(groups)) });
   } catch (error) {
     const { message, status } = getApiErrorDetails(error, 'Failed to fetch category groups.');
     return NextResponse.json({ success: false, message }, { status });
@@ -87,7 +55,6 @@ export async function POST(request: Request) {
       name,
       slug: slugify(String(body.slug || name)),
       description: String(body.description || ''),
-      sourceCategories: normalizeSourceCategories(body.sourceCategories),
       visible: 'visible' in body ? Boolean(body.visible) : true,
       sortOrder: Number.isFinite(Number(body.sortOrder)) ? Number(body.sortOrder) : await nextSortOrder(),
     };
@@ -101,7 +68,7 @@ export async function POST(request: Request) {
       entityId: String(group._id),
       actorUsername: authContext?.username ?? '',
       success: true,
-      details: { name: group.name, slug: group.slug, sourceCategories: group.sourceCategories },
+      details: { name: group.name, slug: group.slug },
     });
 
     return NextResponse.json(JSON.parse(JSON.stringify(group.toObject())), { status: 201 });

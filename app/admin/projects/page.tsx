@@ -212,9 +212,6 @@ export default function ProjectsAdminPage() {
                 <p className="mt-1 text-xs text-muted-foreground">
                   Homepage picks: {group.homepagePickCount} / 3
                 </p>
-                <p className="mt-1 text-[11px] text-muted-foreground/80">
-                  {group.sourceCategories.join(' + ')}
-                </p>
               </div>
               <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs text-primary">
                 Display group
