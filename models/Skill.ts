@@ -2,24 +2,7 @@ import 'server-only';
 
 import { Schema, Document, Model, models, model } from 'mongoose';
 
-export type SkillCategory =
-  | 'Machine Learning'
-  | 'Deep Learning'
-  | 'Programming'
-  | 'Data Visualisation'
-  | 'Tools & Platforms'
-  | 'Soft Skills';
-
-export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
-
-export const SKILL_CATEGORIES: SkillCategory[] = [
-  'Machine Learning',
-  'Deep Learning',
-  'Programming',
-  'Data Visualisation',
-  'Tools & Platforms',
-  'Soft Skills',
-];
+type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 
 export interface ISkill extends Document {
   nameEn: string;

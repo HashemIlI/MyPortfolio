@@ -109,7 +109,7 @@ middleware.ts             # Edge JWT guard — protects /admin/** except /admin/
 ```
 
 ### Authentication Flow
-- Credentials in `ADMIN_USERNAME` / `ADMIN_PASSWORD` env vars
+- Credentials stored in MongoDB `AdminCredential` collection (not env vars)
 - Login → JWT in HTTP-only cookie `portfolio_admin_token` (7-day expiry)
 - `middleware.ts` (Edge) guards `/admin/**`; API write routes call `requireAuth(req)` from `lib/apiAuth.ts`
 
@@ -131,11 +131,9 @@ All client components. Fetch via `useEffect → REST API`. Forms use local state
 |---|---|---|
 | `MONGODB_URI` | Yes | MongoDB connection string |
 | `JWT_SECRET` | Yes | `openssl rand -base64 32` |
-| `ADMIN_USERNAME` | Yes | Admin login (default: `admin`) |
-| `ADMIN_PASSWORD` | Yes | Admin password — change before deploying |
 | `GITHUB_TOKEN` | No | GitHub personal access token for higher API rate limits |
 | `GITHUB_USERNAME` | No | GitHub username for repo fetch (default: `hashemili`) |
-| `NEXT_PUBLIC_APP_URL` | No | Public URL for absolute links |
+| `BLOB_READ_WRITE_TOKEN` | Vercel only | Auto-set when a Blob store is linked in Vercel Project Settings |
 
 ## Key Patterns
 

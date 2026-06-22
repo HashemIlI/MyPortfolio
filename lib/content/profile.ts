@@ -61,7 +61,7 @@ export async function getProfile(options: { createIfMissing?: boolean } = {}) {
   return serializeProfile(profile.toObject());
 }
 
-export function pickProfileUpdate(input: Record<string, unknown>): ProfileUpdateInput {
+function pickProfileUpdate(input: Record<string, unknown>): ProfileUpdateInput {
   return PROFILE_UPDATE_FIELDS.reduce<ProfileUpdateInput>((update, field) => {
     const value = input[field];
 

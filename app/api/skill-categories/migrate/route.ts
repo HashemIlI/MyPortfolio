@@ -28,8 +28,11 @@ const DEFAULT_CATEGORIES = [
   { slug: 'professional-skills', nameEn: 'Professional Skills', nameAr: 'المهارات المهنية',     descriptionEn: 'Communication, ownership, and teamwork',                   descriptionAr: 'التواصل وتحمل المسؤولية والعمل الجماعي',                         icon: 'Briefcase', sortOrder: 5, visible: true },
 ];
 
-// GET — orphan check (no auth required, read-only)
-export async function GET() {
+// GET — orphan check (admin-only)
+export async function GET(request: Request) {
+  const authError = await requireAuth(request);
+  if (authError) return authError;
+
   try {
     await connectDB();
     const distinctCategories = (await Skill.distinct('category')) as string[];

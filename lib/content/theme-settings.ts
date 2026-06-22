@@ -12,7 +12,7 @@ import type {
   TypographyPreset,
 } from '@/types/theme';
 
-export const DEFAULT_THEME_SETTINGS: ThemeSettingsData = {
+const DEFAULT_THEME_SETTINGS: ThemeSettingsData = {
   colorTheme: 'default',
   radius: 'soft',
   cardStyle: 'premium',
@@ -77,7 +77,7 @@ export async function getThemeSettings(options: { createIfMissing?: boolean } = 
   return serializeTheme(theme.toObject());
 }
 
-export function sanitizeThemeInput(input: Record<string, unknown>): ThemeSettingsData {
+function sanitizeThemeInput(input: Record<string, unknown>): ThemeSettingsData {
   const next = { ...DEFAULT_THEME_SETTINGS };
 
   if (typeof input.colorTheme === 'string' && VALID_COLOR_THEME.has(input.colorTheme as ColorThemePreset)) {

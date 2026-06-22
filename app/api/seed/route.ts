@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
+import { requireAuth } from '@/lib/apiAuth';
 import Project from '@/models/Project';
 import Experience from '@/models/Experience';
 import Skill from '@/models/Skill';
@@ -13,10 +14,13 @@ import SkillCategoryModel from '@/models/SkillCategory';
 import { PROJECT_CATEGORIES } from '@/models/Project';
 import { slugify } from '@/lib/utils';
 
-export async function POST() {
+export async function POST(request: Request) {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not allowed in production' }, { status: 403 });
   }
+
+  const authError = await requireAuth(request);
+  if (authError) return authError;
 
   await connectDB();
 

@@ -53,7 +53,7 @@ async function migrateLegacyPasswordIfNeeded(credential: InstanceType<typeof Adm
   return credential;
 }
 
-export async function ensureAdminCredential() {
+async function ensureAdminCredential() {
   await connectDB();
 
   const credential = await AdminCredential.findOne().sort({ createdAt: 1 }).exec();
