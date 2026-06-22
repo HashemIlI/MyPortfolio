@@ -1,5 +1,11 @@
 import type { Metadata } from 'next';
 
+const PRODUCTION_URL = 'https://myportfolio-one-roan-25.vercel.app';
+
+export function siteUrl(): string {
+  return process.env.NEXT_PUBLIC_APP_URL || PRODUCTION_URL;
+}
+
 type GlobalSeoSettings = {
   siteTitleEn?: string;
   siteTitleAr?: string;
@@ -62,17 +68,34 @@ export function buildMetadata(
     (isArabic ? settings?.ogDescriptionAr : settings?.ogDescriptionEn) ||
     description;
   const ogImage = pageSeo?.ogImage || settings?.ogImage || '';
+  const siteName =
+    (isArabic ? settings?.siteNameAr : settings?.siteNameEn) || 'Ahmed Fouad Hashem';
+  const base = siteUrl();
+
+  // Fall back to dynamic OG image route when no custom image is configured
+  const ogImages = ogImage ? [ogImage] : [`${base}/opengraph-image`];
 
   return {
     title,
     description,
     keywords,
+    alternates: {
+      canonical: base,
+    },
     openGraph: {
       type: 'website',
       locale: isArabic ? 'ar_EG' : 'en_US',
+      url: base,
+      siteName,
       title: ogTitle,
       description: ogDescription,
-      images: ogImage ? [ogImage] : [],
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: ogTitle,
+      description: ogDescription,
+      images: ogImages,
     },
     icons: settings?.favicon
       ? {

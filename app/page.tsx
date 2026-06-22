@@ -21,7 +21,7 @@ import Contact from '@/components/sections/Contact';
 import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 
 type SectionConfig = {
@@ -92,7 +92,7 @@ export default async function Home() {
     return (
       <>
         <Navbar sections={[]} />
-        <main className="min-h-screen bg-background pt-24">
+        <main id="main-content" className="min-h-screen bg-background pt-24">
           <section className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-3xl items-center justify-center px-4 sm:px-6 lg:px-8">
             <div className="glass w-full rounded-3xl p-8 text-center sm:p-10">
               <p className="text-sm font-medium uppercase tracking-[0.24em] text-primary">
@@ -137,7 +137,7 @@ export default async function Home() {
   return (
     <>
       <Navbar sections={navSections} />
-      <main>
+      <main id="main-content">
         {orderedSections.map((section) => (
           <div key={section.key}>{sectionMap[section.key]}</div>
         ))}

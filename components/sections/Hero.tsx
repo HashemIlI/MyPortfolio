@@ -88,6 +88,7 @@ export default function Hero({ profile }: HeroProps) {
                     width={176}
                     height={176}
                     quality={100}
+                    priority
                     sizes="(max-width: 640px) 160px, 176px"
                     className="h-full w-full object-cover"
                     style={{ objectPosition: profile?.profilePhotoPosition || 'center' }}

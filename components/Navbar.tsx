@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, Languages, Menu, X } from 'lucide-react';
@@ -89,24 +90,23 @@ export default function Navbar({ sections }: { sections?: NavSection[] }) {
       >
         <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
-            <button
-              onClick={() => {
-                router.push('/');
-              }}
+            <Link
+              href="/"
               className="text-base font-semibold tracking-[0.18em] text-foreground"
             >
               {language === 'ar' ? 'أ.ف.ه' : 'AFH'}
-            </button>
+            </Link>
 
             <nav className="hidden items-center gap-1 md:flex">
               {links.map((link) => (
-                <button
+                <a
                   key={link.href}
-                  onClick={() => handleNavClick(link)}
+                  href={link.href}
+                  onClick={(e) => { e.preventDefault(); handleNavClick(link); }}
                   className={navLinkClass}
                 >
                   {link.label}
-                </button>
+                </a>
               ))}
             </nav>
 
@@ -140,6 +140,8 @@ export default function Navbar({ sections }: { sections?: NavSection[] }) {
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground md:hidden"
                 aria-label="Toggle menu"
+                aria-expanded={mobileOpen}
+                aria-controls="mobile-menu"
               >
                 {mobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </button>
@@ -151,6 +153,7 @@ export default function Navbar({ sections }: { sections?: NavSection[] }) {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-menu"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -161,13 +164,14 @@ export default function Navbar({ sections }: { sections?: NavSection[] }) {
           >
             <nav className="flex max-h-[calc(100vh-4.5rem)] flex-col gap-1 overflow-y-auto px-4 py-3">
               {links.map((link) => (
-                <button
+                <a
                   key={link.href}
-                  onClick={() => handleNavClick(link)}
+                  href={link.href}
+                  onClick={(e) => { e.preventDefault(); handleNavClick(link); }}
                   className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground text-start"
                 >
                   {link.label}
-                </button>
+                </a>
               ))}
             </nav>
           </motion.div>

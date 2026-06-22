@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ExternalLink, Github, Star } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -311,11 +312,13 @@ function ProjectCard({
   return (
     <article className="glass group flex h-full flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/35 hover:shadow-xl hover:shadow-primary/5">
       {project.thumbnail ? (
-        <div className="aspect-video overflow-hidden border-b border-border/60 bg-muted">
-          <img
+        <div className="relative aspect-video overflow-hidden border-b border-border/60 bg-muted">
+          <Image
             src={project.thumbnail}
             alt={project.titleEn}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         </div>
       ) : (

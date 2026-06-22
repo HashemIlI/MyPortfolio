@@ -1,4 +1,5 @@
 'use client';
+import { MotionConfig } from 'framer-motion';
 import { ThemeProvider } from 'next-themes';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { Toaster } from '@/components/ui/toaster';
@@ -13,16 +14,18 @@ export default function Providers({
   defaultLanguage?: 'en' | 'ar';
 }) {
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme={defaultTheme}
-      enableSystem={false}
-      disableTransitionOnChange
-    >
-      <LanguageProvider initialLanguage={defaultLanguage}>
-        {children}
-        <Toaster />
-      </LanguageProvider>
-    </ThemeProvider>
+    <MotionConfig reducedMotion="user">
+      <ThemeProvider
+        attribute="class"
+        defaultTheme={defaultTheme}
+        enableSystem={false}
+        disableTransitionOnChange
+      >
+        <LanguageProvider initialLanguage={defaultLanguage}>
+          {children}
+          <Toaster />
+        </LanguageProvider>
+      </ThemeProvider>
+    </MotionConfig>
   );
 }

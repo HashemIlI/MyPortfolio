@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import type { Metadata } from 'next';
 import { Inter, Cairo } from 'next/font/google';
 import Script from 'next/script';
@@ -22,7 +23,7 @@ const cairo = Cairo({
 
 export const revalidate = 3600;
 
-async function getSettings() {
+const getSettings = cache(async () => {
   try {
     await connectDB();
     const settings = await SiteSettingsModel.findOne().lean();
@@ -30,7 +31,7 @@ async function getSettings() {
   } catch {
     return null;
   }
-}
+});
 
 async function getTheme() {
   try {
@@ -85,6 +86,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          Skip to content
+        </a>
         <Providers defaultTheme={defaultTheme} defaultLanguage={defaultLanguage}>
           {children}
         </Providers>

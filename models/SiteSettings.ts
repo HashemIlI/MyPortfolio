@@ -66,19 +66,23 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     siteNameAr: { type: String, default: 'أحمد فؤاد هاشم' },
     defaultMetaDescriptionEn: {
       type: String,
-      default: 'Data Analyst & Applied AI Specialist',
+      default:
+        'Ahmed Fouad Hashem — Data Analyst & Applied AI Specialist. I turn raw data into actionable insights using Python, SQL, TensorFlow, and Power BI.',
     },
     defaultMetaDescriptionAr: {
       type: String,
-      default: 'محلل بيانات ومتخصص في الذكاء الاصطناعي التطبيقي',
+      default:
+        'أحمد فؤاد هاشم — محلل بيانات ومتخصص في الذكاء الاصطناعي التطبيقي. أحوّل البيانات الخام إلى رؤى قابلة للتنفيذ باستخدام Python وSQL وTensorFlow وPower BI.',
     },
     siteDescriptionEn: {
       type: String,
-      default: 'Data Analyst & Applied AI Specialist',
+      default:
+        'Ahmed Fouad Hashem — Data Analyst & Applied AI Specialist. I turn raw data into actionable insights using Python, SQL, TensorFlow, and Power BI.',
     },
     siteDescriptionAr: {
       type: String,
-      default: 'محلل بيانات ومتخصص في الذكاء الاصطناعي التطبيقي',
+      default:
+        'أحمد فؤاد هاشم — محلل بيانات ومتخصص في الذكاء الاصطناعي التطبيقي. أحوّل البيانات الخام إلى رؤى قابلة للتنفيذ باستخدام Python وSQL وTensorFlow وPower BI.',
     },
     siteKeywords: {
       type: [String],
