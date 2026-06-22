@@ -9,6 +9,7 @@ import Profile from '@/models/Profile';
 import SiteSettings from '@/models/SiteSettings';
 import ThemeSettings from '@/models/ThemeSettings';
 import CategoryGroup from '@/models/CategoryGroup';
+import SkillCategoryModel from '@/models/SkillCategory';
 import { PROJECT_CATEGORIES } from '@/models/Project';
 import { slugify } from '@/lib/utils';
 
@@ -30,6 +31,7 @@ export async function POST() {
     SiteSettings.deleteMany({}),
     ThemeSettings.deleteMany({}),
     CategoryGroup.deleteMany({}),
+    SkillCategoryModel.deleteMany({}),
   ]);
 
   // ─── Profile (Singleton) ──────────────────────────────────────────────────
@@ -138,45 +140,55 @@ export async function POST() {
     },
   ]);
 
+  // ─── Skill Categories ─────────────────────────────────────────────────────
+  await SkillCategoryModel.insertMany([
+    { nameEn: 'Machine Learning', nameAr: 'تعلم الآلة', slug: 'machine-learning', descriptionEn: 'Predictive models, tuning, and evaluation workflows', descriptionAr: 'نماذج تنبؤية وسير عمل الضبط والتقييم', icon: 'Brain', visible: true, sortOrder: 0 },
+    { nameEn: 'Deep Learning', nameAr: 'التعلم العميق', slug: 'deep-learning', descriptionEn: 'Neural networks, architectures, and training pipelines', descriptionAr: 'الشبكات العصبية والبنى المعمارية ومسارات التدريب', icon: 'Cpu', visible: true, sortOrder: 1 },
+    { nameEn: 'Data Analysis', nameAr: 'تحليل البيانات', slug: 'data-analysis', descriptionEn: 'Data wrangling, querying, and exploration', descriptionAr: 'تنظيف البيانات والاستعلام والاستكشاف', icon: 'Database', visible: true, sortOrder: 2 },
+    { nameEn: 'Business Intelligence', nameAr: 'ذكاء الأعمال', slug: 'business-intelligence', descriptionEn: 'Reporting, dashboards, and decision support', descriptionAr: 'التقارير ولوحات المعلومات ودعم القرار', icon: 'BarChart3', visible: true, sortOrder: 3 },
+    { nameEn: 'Tools', nameAr: 'الأدوات', slug: 'tools', descriptionEn: 'Platforms and daily delivery tooling', descriptionAr: 'المنصات والأدوات المستخدمة يومياً', icon: 'Wrench', visible: true, sortOrder: 4 },
+    { nameEn: 'Professional Skills', nameAr: 'المهارات المهنية', slug: 'professional-skills', descriptionEn: 'Communication, ownership, and teamwork', descriptionAr: 'التواصل وتحمل المسؤولية والعمل الجماعي', icon: 'Briefcase', visible: true, sortOrder: 5 },
+  ]);
+
   // ─── Skills ───────────────────────────────────────────────────────────────
   await Skill.insertMany([
-    // Machine Learning
-    { nameEn: 'Supervised Learning', nameAr: 'التعلم الخاضع للإشراف', category: 'Machine Learning', level: 'Advanced', order: 1 },
-    { nameEn: 'Unsupervised Learning', nameAr: 'التعلم غير الخاضع للإشراف', category: 'Machine Learning', level: 'Intermediate', order: 2 },
-    { nameEn: 'Feature Engineering', nameAr: 'هندسة الميزات', category: 'Machine Learning', level: 'Advanced', order: 3 },
-    { nameEn: 'Model Evaluation', nameAr: 'تقييم النماذج', category: 'Machine Learning', level: 'Advanced', order: 4 },
-    { nameEn: 'Hyperparameter Tuning', nameAr: 'ضبط المعاملات الفائقة', category: 'Machine Learning', level: 'Intermediate', order: 5 },
-    { nameEn: 'Random Forest', nameAr: 'الغابة العشوائية', category: 'Machine Learning', level: 'Advanced', order: 6 },
-    { nameEn: 'Logistic Regression', nameAr: 'الانحدار اللوجستي', category: 'Machine Learning', level: 'Expert', order: 7 },
-    // Deep Learning
-    { nameEn: 'Artificial Neural Networks', nameAr: 'الشبكات العصبية الاصطناعية', category: 'Deep Learning', level: 'Advanced', order: 1 },
-    { nameEn: 'TensorFlow', nameAr: 'تنسرفلو', category: 'Deep Learning', level: 'Intermediate', order: 2 },
-    { nameEn: 'Keras', nameAr: 'كيراس', category: 'Deep Learning', level: 'Intermediate', order: 3 },
-    { nameEn: 'PyTorch', nameAr: 'باي تورش', category: 'Deep Learning', level: 'Beginner', order: 4 },
-    { nameEn: 'Batch Normalization', nameAr: 'التطبيع الدفعي', category: 'Deep Learning', level: 'Intermediate', order: 5 },
-    // Programming
-    { nameEn: 'Python', nameAr: 'بايثون', category: 'Programming', level: 'Expert', order: 1 },
-    { nameEn: 'SQL', nameAr: 'SQL', category: 'Programming', level: 'Advanced', order: 2 },
-    { nameEn: 'Pandas', nameAr: 'باندا', category: 'Programming', level: 'Expert', order: 3 },
-    { nameEn: 'NumPy', nameAr: 'نمباي', category: 'Programming', level: 'Expert', order: 4 },
-    { nameEn: 'Scikit-Learn', nameAr: 'سكيكيت-ليرن', category: 'Programming', level: 'Advanced', order: 5 },
-    // Data Visualisation
-    { nameEn: 'Power BI', nameAr: 'باور بي آي', category: 'Data Visualisation', level: 'Advanced', order: 1 },
-    { nameEn: 'Tableau', nameAr: 'تابلو', category: 'Data Visualisation', level: 'Intermediate', order: 2 },
-    { nameEn: 'Matplotlib', nameAr: 'ماتبلوتليب', category: 'Data Visualisation', level: 'Advanced', order: 3 },
-    { nameEn: 'Seaborn', nameAr: 'سيبورن', category: 'Data Visualisation', level: 'Advanced', order: 4 },
-    { nameEn: 'Exploratory Data Analysis', nameAr: 'التحليل الاستكشافي للبيانات', category: 'Data Visualisation', level: 'Expert', order: 5 },
-    // Tools & Platforms
-    { nameEn: 'Excel', nameAr: 'إكسيل', category: 'Tools & Platforms', level: 'Advanced', order: 1 },
-    { nameEn: 'Jupyter Notebook', nameAr: 'جوبيتر نوتبوك', category: 'Tools & Platforms', level: 'Expert', order: 2 },
-    { nameEn: 'Google Colab', nameAr: 'جوجل كولاب', category: 'Tools & Platforms', level: 'Expert', order: 3 },
-    { nameEn: 'Git & GitHub', nameAr: 'جيت وجيت هاب', category: 'Tools & Platforms', level: 'Intermediate', order: 4 },
-    { nameEn: 'Kaggle', nameAr: 'كاجل', category: 'Tools & Platforms', level: 'Advanced', order: 5 },
-    // Soft Skills
-    { nameEn: 'Analytical Thinking', nameAr: 'التفكير التحليلي', category: 'Soft Skills', level: 'Expert', order: 1 },
-    { nameEn: 'Problem Solving', nameAr: 'حل المشكلات', category: 'Soft Skills', level: 'Expert', order: 2 },
-    { nameEn: 'Communication', nameAr: 'التواصل', category: 'Soft Skills', level: 'Advanced', order: 3 },
-    { nameEn: 'Teamwork', nameAr: 'العمل الجماعي', category: 'Soft Skills', level: 'Advanced', order: 4 },
+    // machine-learning
+    { nameEn: 'Supervised Learning', nameAr: 'التعلم الخاضع للإشراف', category: 'machine-learning', level: 'Advanced', order: 1 },
+    { nameEn: 'Unsupervised Learning', nameAr: 'التعلم غير الخاضع للإشراف', category: 'machine-learning', level: 'Intermediate', order: 2 },
+    { nameEn: 'Feature Engineering', nameAr: 'هندسة الميزات', category: 'machine-learning', level: 'Advanced', order: 3 },
+    { nameEn: 'Model Evaluation', nameAr: 'تقييم النماذج', category: 'machine-learning', level: 'Advanced', order: 4 },
+    { nameEn: 'Hyperparameter Tuning', nameAr: 'ضبط المعاملات الفائقة', category: 'machine-learning', level: 'Intermediate', order: 5 },
+    { nameEn: 'Random Forest', nameAr: 'الغابة العشوائية', category: 'machine-learning', level: 'Advanced', order: 6 },
+    { nameEn: 'Logistic Regression', nameAr: 'الانحدار اللوجستي', category: 'machine-learning', level: 'Expert', order: 7 },
+    // deep-learning
+    { nameEn: 'Artificial Neural Networks', nameAr: 'الشبكات العصبية الاصطناعية', category: 'deep-learning', level: 'Advanced', order: 1 },
+    { nameEn: 'TensorFlow', nameAr: 'تنسرفلو', category: 'deep-learning', level: 'Intermediate', order: 2 },
+    { nameEn: 'Keras', nameAr: 'كيراس', category: 'deep-learning', level: 'Intermediate', order: 3 },
+    { nameEn: 'PyTorch', nameAr: 'باي تورش', category: 'deep-learning', level: 'Beginner', order: 4 },
+    { nameEn: 'Batch Normalization', nameAr: 'التطبيع الدفعي', category: 'deep-learning', level: 'Intermediate', order: 5 },
+    // data-analysis (was: Programming)
+    { nameEn: 'Python', nameAr: 'بايثون', category: 'data-analysis', level: 'Expert', order: 1 },
+    { nameEn: 'SQL', nameAr: 'SQL', category: 'data-analysis', level: 'Advanced', order: 2 },
+    { nameEn: 'Pandas', nameAr: 'باندا', category: 'data-analysis', level: 'Expert', order: 3 },
+    { nameEn: 'NumPy', nameAr: 'نمباي', category: 'data-analysis', level: 'Expert', order: 4 },
+    { nameEn: 'Scikit-Learn', nameAr: 'سكيكيت-ليرن', category: 'data-analysis', level: 'Advanced', order: 5 },
+    // business-intelligence (was: Data Visualisation)
+    { nameEn: 'Power BI', nameAr: 'باور بي آي', category: 'business-intelligence', level: 'Advanced', order: 1 },
+    { nameEn: 'Tableau', nameAr: 'تابلو', category: 'business-intelligence', level: 'Intermediate', order: 2 },
+    { nameEn: 'Matplotlib', nameAr: 'ماتبلوتليب', category: 'business-intelligence', level: 'Advanced', order: 3 },
+    { nameEn: 'Seaborn', nameAr: 'سيبورن', category: 'business-intelligence', level: 'Advanced', order: 4 },
+    { nameEn: 'Exploratory Data Analysis', nameAr: 'التحليل الاستكشافي للبيانات', category: 'business-intelligence', level: 'Expert', order: 5 },
+    // tools (was: Tools & Platforms)
+    { nameEn: 'Excel', nameAr: 'إكسيل', category: 'tools', level: 'Advanced', order: 1 },
+    { nameEn: 'Jupyter Notebook', nameAr: 'جوبيتر نوتبوك', category: 'tools', level: 'Expert', order: 2 },
+    { nameEn: 'Google Colab', nameAr: 'جوجل كولاب', category: 'tools', level: 'Expert', order: 3 },
+    { nameEn: 'Git & GitHub', nameAr: 'جيت وجيت هاب', category: 'tools', level: 'Intermediate', order: 4 },
+    { nameEn: 'Kaggle', nameAr: 'كاجل', category: 'tools', level: 'Advanced', order: 5 },
+    // professional-skills (was: Soft Skills)
+    { nameEn: 'Analytical Thinking', nameAr: 'التفكير التحليلي', category: 'professional-skills', level: 'Expert', order: 1 },
+    { nameEn: 'Problem Solving', nameAr: 'حل المشكلات', category: 'professional-skills', level: 'Expert', order: 2 },
+    { nameEn: 'Communication', nameAr: 'التواصل', category: 'professional-skills', level: 'Advanced', order: 3 },
+    { nameEn: 'Teamwork', nameAr: 'العمل الجماعي', category: 'professional-skills', level: 'Advanced', order: 4 },
   ]);
 
   // ─── Certifications ───────────────────────────────────────────────────────
@@ -365,6 +377,7 @@ export async function POST() {
       siteSettings: 1,
       education: 1,
       experience: 1,
+      skillCategories: 6,
       skills: 31,
       certifications: 4,
       projects: 5,

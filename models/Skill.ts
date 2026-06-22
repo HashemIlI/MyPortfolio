@@ -24,7 +24,7 @@ export const SKILL_CATEGORIES: SkillCategory[] = [
 export interface ISkill extends Document {
   nameEn: string;
   nameAr: string;
-  category: SkillCategory;
+  category: string;
   level: SkillLevel;
   icon: string;
   visible: boolean;
@@ -35,7 +35,7 @@ const SkillSchema = new Schema<ISkill>(
   {
     nameEn: { type: String, required: true },
     nameAr: { type: String, default: '' },
-    category: { type: String, enum: SKILL_CATEGORIES, required: true },
+    category: { type: String, required: true },
     level: {
       type: String,
       enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],

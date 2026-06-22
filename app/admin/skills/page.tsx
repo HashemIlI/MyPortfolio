@@ -1,27 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  BarChart3,
-  Brain,
-  Briefcase,
-  Cpu,
-  Database,
-  Eye,
-  EyeOff,
-  Pencil,
-  Plus,
-  Trash2,
-  Wrench,
-} from 'lucide-react';
+import { Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { SKILL_CATEGORIES } from '@/lib/content/skill';
-import type { SkillData, SkillCategory, SkillLevel } from '@/lib/content/skill';
+import { fetchJson } from '@/lib/http';
+import { Brain } from 'lucide-react';
+import { ICON_MAP } from '@/lib/icon-map';
+import type { SkillData, SkillLevel } from '@/lib/content/skill';
+import type { SkillCategoryData } from '@/lib/content/skill-category';
 
 type FormData = {
   nameEn: string;
   nameAr: string;
-  category: SkillCategory;
+  category: string;
   level: SkillLevel;
   visible: boolean;
   order: number;
@@ -30,83 +21,43 @@ type FormData = {
 const EMPTY: FormData = {
   nameEn: '',
   nameAr: '',
-  category: 'Programming',
+  category: '',
   level: 'Advanced',
   visible: true,
   order: 0,
 };
 
-const CATEGORY_META: Record<
-  SkillCategory,
-  {
-    icon: typeof Brain;
-    title: string;
-    titleAr: string;
-    subtitle: string;
-  }
-> = {
-  'Machine Learning': {
-    icon: Brain,
-    title: 'Machine Learning',
-    titleAr: 'تعلم الآلة',
-    subtitle: 'Models, evaluation, and predictive workflows',
-  },
-  'Deep Learning': {
-    icon: Cpu,
-    title: 'Deep Learning',
-    titleAr: 'التعلم العميق',
-    subtitle: 'Neural networks, architectures, and training pipelines',
-  },
-  Programming: {
-    icon: Database,
-    title: 'Data Analysis',
-    titleAr: 'تحليل البيانات',
-    subtitle: 'Data wrangling, querying, and exploratory work',
-  },
-  'Data Visualisation': {
-    icon: BarChart3,
-    title: 'Business Intelligence',
-    titleAr: 'ذكاء الأعمال',
-    subtitle: 'Dashboards, reporting, and decision support',
-  },
-  'Tools & Platforms': {
-    icon: Wrench,
-    title: 'Tools',
-    titleAr: 'الأدوات',
-    subtitle: 'Platforms and delivery tooling',
-  },
-  'Soft Skills': {
-    icon: Briefcase,
-    title: 'Professional Skills',
-    titleAr: 'المهارات المهنية',
-    subtitle: 'Communication, ownership, and collaboration',
-  },
-};
-
 export default function SkillsAdminPage() {
   const [skills, setSkills] = useState<SkillData[]>([]);
+  const [skillCategories, setSkillCategories] = useState<SkillCategoryData[]>([]);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState<SkillData | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [filterCat, setFilterCat] = useState<'All' | SkillCategory>('All');
+  const [filterSlug, setFilterSlug] = useState<string>('All');
 
   async function load() {
-    const data = await fetch('/api/skills?admin=true').then((r) => r.json());
-    setSkills(Array.isArray(data) ? data : []);
+    const [skillData, catData] = await Promise.all([
+      fetch('/api/skills?admin=true').then((r) => r.json()),
+      fetchJson<{ categories: SkillCategoryData[] }>('/api/skill-categories?admin=true'),
+    ]);
+    const cats = catData.categories || [];
+    setSkills(Array.isArray(skillData) ? skillData : []);
+    setSkillCategories(cats);
+    // Set default filter category if not yet set
+    setFilterSlug((prev) => (prev === 'All' ? 'All' : prev));
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
-  function openAdd(category?: SkillCategory) {
+  function openAdd(slug?: string) {
+    const defaultSlug = slug ?? skillCategories[0]?.slug ?? '';
     setEditing(null);
     setForm({
       ...EMPTY,
-      category: category ?? EMPTY.category,
-      order: skills.filter((skill) => skill.category === (category ?? EMPTY.category)).length,
+      category: defaultSlug,
+      order: skills.filter((s) => s.category === defaultSlug).length,
     });
     setModal(true);
   }
@@ -133,9 +84,7 @@ export default function SkillsAdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-
       if (!res.ok) throw new Error();
-
       toast({ title: editing ? 'Skill updated!' : 'Skill added!', variant: 'success' });
       setModal(false);
       load();
@@ -153,13 +102,15 @@ export default function SkillsAdminPage() {
     load();
   }
 
-  const groupedCategories = SKILL_CATEGORIES.filter((category) =>
-    filterCat === 'All' ? true : category === filterCat
-  ).map((category) => ({
-    category,
-    meta: CATEGORY_META[category],
+  const visibleCategories = filterSlug === 'All'
+    ? skillCategories
+    : skillCategories.filter((c) => c.slug === filterSlug);
+
+  const groupedCategories = visibleCategories.map((cat) => ({
+    cat,
+    Icon: ICON_MAP[cat.icon] ?? Brain,
     items: skills
-      .filter((skill) => skill.category === category)
+      .filter((s) => s.category === cat.slug)
       .sort((a, b) => a.order - b.order || a.nameEn.localeCompare(b.nameEn)),
   }));
 
@@ -181,101 +132,104 @@ export default function SkillsAdminPage() {
         </button>
       </div>
 
+      {/* Category filter pills */}
       <div className="mb-5 flex flex-wrap gap-2">
-        {(['All', ...SKILL_CATEGORIES] as const).map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilterCat(cat)}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-              filterCat === cat
-                ? 'border-primary/35 bg-primary/15 text-primary shadow-sm shadow-primary/10'
-                : 'admin-control text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {cat === 'All' ? 'All Categories' : CATEGORY_META[cat].title}
-          </button>
-        ))}
+        {(['All', ...skillCategories.map((c) => c.slug)] as string[]).map((slug) => {
+          const cat = skillCategories.find((c) => c.slug === slug);
+          const label = slug === 'All' ? 'All Categories' : (cat?.nameEn ?? slug);
+          return (
+            <button
+              key={slug}
+              onClick={() => setFilterSlug(slug)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                filterSlug === slug
+                  ? 'border-primary/35 bg-primary/15 text-primary shadow-sm shadow-primary/10'
+                  : 'admin-control text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {groupedCategories.map(({ category, meta, items }) => {
-          const Icon = meta.icon;
-
-          return (
-            <section key={category} className="admin-card flex h-full min-w-0 flex-col rounded-2xl p-4">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10 text-primary">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <h2 className="text-sm font-semibold text-foreground">{meta.title}</h2>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{meta.subtitle}</p>
-                  </div>
+        {groupedCategories.map(({ cat, Icon, items }) => (
+          <section key={cat._id} className="admin-card flex h-full min-w-0 flex-col rounded-2xl p-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/15 bg-primary/10 text-primary">
+                  <Icon className="h-4 w-4" />
                 </div>
-                <button
-                  onClick={() => openAdd(category)}
-                  className="admin-secondary-btn inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-medium"
-                >
-                  <Plus className="h-3.5 w-3.5 text-primary" />
-                  Add
-                </button>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold text-foreground">{cat.nameEn}</h2>
+                  {cat.descriptionEn && (
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{cat.descriptionEn}</p>
+                  )}
+                </div>
               </div>
+              <button
+                onClick={() => openAdd(cat.slug)}
+                className="admin-secondary-btn inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-medium"
+              >
+                <Plus className="h-3.5 w-3.5 text-primary" />
+                Add
+              </button>
+            </div>
 
-              {items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border/80 px-4 py-6 text-center text-xs text-muted-foreground">
-                  No skills in this category yet.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {items.map((skill) => (
-                    <div
-                      key={String(skill._id)}
-                      className="group flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/18 bg-primary/[0.06] px-3 py-2.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-colors duration-200 hover:border-primary/30 hover:bg-primary/[0.10] sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="max-w-full truncate text-foreground/82 dark:text-emerald-50/85">
-                          {skill.nameEn}
+            {items.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border/80 px-4 py-6 text-center text-xs text-muted-foreground">
+                No skills in this category yet.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {items.map((skill) => (
+                  <div
+                    key={String(skill._id)}
+                    className="group flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/18 bg-primary/[0.06] px-3 py-2.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-colors duration-200 hover:border-primary/30 hover:bg-primary/[0.10] sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="max-w-full truncate text-foreground/82 dark:text-emerald-50/85">
+                        {skill.nameEn}
+                      </span>
+                      {skill.nameAr && (
+                        <span className="max-w-full truncate text-muted-foreground/85" dir="rtl">
+                          {skill.nameAr}
                         </span>
-                        {skill.nameAr && (
-                          <span className="max-w-full truncate text-muted-foreground/85" dir="rtl">
-                            {skill.nameAr}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:ml-auto sm:w-auto">
-                        <span
-                          className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] ${
-                            skill.visible
-                              ? 'border-primary/20 bg-primary/10 text-primary'
-                              : 'border-border/70 bg-background/40 text-muted-foreground'
-                          }`}
-                          title={skill.visible ? 'Visible on portfolio' : 'Hidden from portfolio'}
-                        >
-                          {skill.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                        </span>
-                        <button
-                          onClick={() => openEdit(skill)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:border-primary/20 hover:bg-primary/10 hover:text-foreground"
-                          aria-label={`Edit ${skill.nameEn}`}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(String(skill._id))}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-red-300 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-200"
-                          aria-label={`Delete ${skill.nameEn}`}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          );
-        })}
+                    <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:ml-auto sm:w-auto">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] ${
+                          skill.visible
+                            ? 'border-primary/20 bg-primary/10 text-primary'
+                            : 'border-border/70 bg-background/40 text-muted-foreground'
+                        }`}
+                        title={skill.visible ? 'Visible on portfolio' : 'Hidden from portfolio'}
+                      >
+                        {skill.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                      </span>
+                      <button
+                        onClick={() => openEdit(skill)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-muted-foreground transition-colors hover:border-primary/20 hover:bg-primary/10 hover:text-foreground"
+                        aria-label={`Edit ${skill.nameEn}`}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(String(skill._id))}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-red-300 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-200"
+                        aria-label={`Delete ${skill.nameEn}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ))}
       </div>
 
       {modal && (
@@ -289,20 +243,35 @@ export default function SkillsAdminPage() {
             </div>
             <div className="space-y-4 p-4 sm:p-5">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field label="Name (EN) *" val={form.nameEn} set={(value) => setForm({ ...form, nameEn: value })} />
-                <Field label="Name (AR)" val={form.nameAr} set={(value) => setForm({ ...form, nameAr: value })} dir="rtl" />
+                <Field label="Name (EN) *" val={form.nameEn} set={(v) => setForm({ ...form, nameEn: v })} />
+                <Field label="Name (AR)" val={form.nameAr} set={(v) => setForm({ ...form, nameAr: v })} dir="rtl" />
               </div>
 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Category</label>
                 <select
                   value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as SkillCategory })}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
                   className="admin-control w-full rounded-xl px-3 py-2 text-sm"
                 >
-                  {SKILL_CATEGORIES.map((category) => (
-                    <option key={category} value={category} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>
-                      {CATEGORY_META[category].title}
+                  {skillCategories.map((cat) => (
+                    <option key={cat._id} value={cat.slug} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>
+                      {cat.nameEn}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Level</label>
+                <select
+                  value={form.level}
+                  onChange={(e) => setForm({ ...form, level: e.target.value as SkillLevel })}
+                  className="admin-control w-full rounded-xl px-3 py-2 text-sm"
+                >
+                  {(['Beginner', 'Intermediate', 'Advanced', 'Expert'] as SkillLevel[]).map((lvl) => (
+                    <option key={lvl} value={lvl} style={{ backgroundColor: '#141619', color: '#f0f4f8' }}>
+                      {lvl}
                     </option>
                   ))}
                 </select>
@@ -312,7 +281,7 @@ export default function SkillsAdminPage() {
                 <Field
                   label="Order"
                   val={String(form.order)}
-                  set={(value) => setForm({ ...form, order: Number(value) })}
+                  set={(v) => setForm({ ...form, order: Number(v) })}
                   type="number"
                 />
                 <label className="flex cursor-pointer items-center gap-2 pb-2">
@@ -375,7 +344,7 @@ function Field({
 }: {
   label: string;
   val: string;
-  set: (value: string) => void;
+  set: (v: string) => void;
   type?: string;
   dir?: string;
 }) {

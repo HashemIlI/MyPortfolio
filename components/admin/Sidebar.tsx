@@ -35,6 +35,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/category-groups', label: 'Category Groups', icon: Tags },
       { href: '/admin/experience', label: 'Experience', icon: Briefcase },
       { href: '/admin/skills', label: 'Skills', icon: Code2 },
+      { href: '/admin/skill-categories', label: 'Skill Categories', icon: Tags },
       { href: '/admin/certifications', label: 'Certifications', icon: Award },
       { href: '/admin/education', label: 'Education', icon: GraduationCap },
     ],

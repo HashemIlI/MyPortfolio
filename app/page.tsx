@@ -5,6 +5,7 @@ import ProjectModel from '@/models/Project';
 import CategoryGroupModel from '@/models/CategoryGroup';
 import ExperienceModel from '@/models/Experience';
 import SkillModel from '@/models/Skill';
+import SkillCategoryModel from '@/models/SkillCategory';
 import CertificationModel from '@/models/Certification';
 import EducationModel from '@/models/Education';
 
@@ -56,13 +57,14 @@ type SectionConfig = {
 async function getData() {
   try {
     await connectDB();
-    const [profile, settings, projects, categoryGroups, experience, skills, rawCerts, education] = await Promise.all([
+    const [profile, settings, projects, categoryGroups, experience, skillCategories, skills, rawCerts, education] = await Promise.all([
       getProfile(),
       SiteSettingsModel.findOne().lean(),
       ProjectModel.find({ visible: true }).sort({ displayOrder: 1, createdAt: -1 }).lean(),
       CategoryGroupModel.find({ visible: true }).sort({ sortOrder: 1, createdAt: 1 }).lean(),
       ExperienceModel.find({ visible: true }).sort({ order: 1 }).lean(),
-      SkillModel.find({ visible: true }).sort({ category: 1, order: 1 }).lean(),
+      SkillCategoryModel.find({ visible: true }).sort({ sortOrder: 1, createdAt: 1 }).lean(),
+      SkillModel.find({ visible: true }).sort({ order: 1 }).lean(),
       CertificationModel.find({ visible: true }).sort({ order: 1 }).lean(),
       EducationModel.find({ visible: true }).sort({ order: 1 }).lean(),
     ]);
@@ -77,6 +79,7 @@ async function getData() {
       projects: JSON.parse(JSON.stringify(projects)),
       categoryGroups: JSON.parse(JSON.stringify(categoryGroups)),
       experience: JSON.parse(JSON.stringify(experience)),
+      skillCategories: JSON.parse(JSON.stringify(skillCategories)),
       skills: JSON.parse(JSON.stringify(skills)),
       certifications: JSON.parse(JSON.stringify(certifications)),
       education: JSON.parse(JSON.stringify(education)),
@@ -84,7 +87,7 @@ async function getData() {
   } catch {
     return {
       profile: null, settings: null, projects: [], categoryGroups: [], experience: [],
-      skills: [], certifications: [], education: [],
+      skillCategories: [], skills: [], certifications: [], education: [],
     };
   }
 }
@@ -109,7 +112,7 @@ const DEFAULT_SECTIONS: SectionConfig[] = [
 ];
 
 export default async function Home() {
-  const { profile, settings, projects, categoryGroups, experience, skills, certifications, education } = await getData();
+  const { profile, settings, projects, categoryGroups, experience, skillCategories, skills, certifications, education } = await getData();
 
   if (settings?.maintenanceMode) {
     return (
@@ -147,7 +150,7 @@ export default async function Home() {
   const sectionMap: Record<string, React.ReactNode> = {
     hero: <Hero profile={profile} />,
     about: <About profile={profile} />,
-    skills: <Skills skills={skills} />,
+    skills: <Skills skillCategories={skillCategories} skills={skills} />,
     experience: <Experience experiences={experience} />,
     education: <EducationSection education={education} />,
     projects: <Projects projects={projects} categoryGroups={categoryGroups} displayMode={(settings?.projectsDisplayMode as 'selected' | 'grouped') ?? 'selected'} />,

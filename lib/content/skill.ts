@@ -21,7 +21,7 @@ export interface SkillData {
   _id: string;
   nameEn: string;
   nameAr: string;
-  category: SkillCategory;
+  category: string;
   level: SkillLevel;
   icon: string;
   visible: boolean;
