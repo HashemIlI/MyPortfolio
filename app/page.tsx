@@ -23,28 +23,6 @@ import ScrollToTop from '@/components/ScrollToTop';
 
 export const revalidate = 60;
 
-const CERT_MONTH_MAP: Record<string, number> = {
-  Jan: 0, January: 0, Feb: 1, February: 1, Mar: 2, March: 2,
-  Apr: 3, April: 3, May: 4, Jun: 5, June: 5, Jul: 6, July: 6,
-  Aug: 7, August: 7, Sep: 8, September: 8, Oct: 9, October: 9,
-  Nov: 10, November: 10, Dec: 11, December: 11,
-};
-
-function parseCertDate(dateStr: string | undefined | null): number {
-  if (!dateStr) return 0;
-  const yyyyMm = dateStr.match(/^(\d{4})-(\d{2})$/);
-  if (yyyyMm) return new Date(parseInt(yyyyMm[1], 10), parseInt(yyyyMm[2], 10) - 1, 1).getTime();
-  const monthYear = dateStr.match(/^([A-Za-z]+)\s+(\d{4})$/);
-  if (monthYear) {
-    const month = CERT_MONTH_MAP[monthYear[1]];
-    const year = parseInt(monthYear[2], 10);
-    if (month !== undefined && !isNaN(year)) return new Date(year, month, 1).getTime();
-  }
-  const yearOnly = dateStr.match(/^(\d{4})$/);
-  if (yearOnly) return new Date(parseInt(yearOnly[1], 10), 11, 1).getTime();
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? 0 : d.getTime();
-}
 
 type SectionConfig = {
   key: string;
@@ -57,7 +35,7 @@ type SectionConfig = {
 async function getData() {
   try {
     await connectDB();
-    const [profile, settings, projects, categoryGroups, experience, skillCategories, skills, rawCerts, education] = await Promise.all([
+    const [profile, settings, projects, categoryGroups, experience, skillCategories, skills, certifications, education] = await Promise.all([
       getProfile(),
       SiteSettingsModel.findOne().lean(),
       ProjectModel.find({ visible: true }).sort({ displayOrder: 1, createdAt: -1 }).lean(),
@@ -65,13 +43,9 @@ async function getData() {
       ExperienceModel.find({ visible: true }).sort({ order: 1 }).lean(),
       SkillCategoryModel.find({ visible: true }).sort({ sortOrder: 1, createdAt: 1 }).lean(),
       SkillModel.find({ visible: true }).sort({ order: 1 }).lean(),
-      CertificationModel.find({ visible: true }).sort({ order: 1 }).lean(),
+      CertificationModel.find({ visible: true }).sort({ order: 1, createdAt: -1 }).lean(),
       EducationModel.find({ visible: true }).sort({ order: 1 }).lean(),
     ]);
-
-    const certifications = [...rawCerts].sort(
-      (a, b) => parseCertDate(b.date) - parseCertDate(a.date)
-    );
 
     return {
       profile,
