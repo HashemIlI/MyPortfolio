@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Education from '@/models/Education';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -34,6 +35,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
     const education = await Education.create(body);
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,

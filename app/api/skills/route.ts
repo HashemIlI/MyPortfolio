@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Skill from '@/models/Skill';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -35,6 +36,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
     const skill = await Skill.create(body);
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,

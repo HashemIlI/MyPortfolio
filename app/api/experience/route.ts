@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Experience from '@/models/Experience';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
     if ('tools' in body) body.tools = sanitizeStringArray(body.tools);
     if ('metaKeywords' in body) body.metaKeywords = sanitizeStringArray(body.metaKeywords);
     const exp = await Experience.create(body);
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Education from '@/models/Education';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -40,6 +41,8 @@ export async function PUT(
       runValidators: true,
     }).lean();
     if (!education) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,
@@ -69,6 +72,8 @@ export async function DELETE(
     const authContext = await getAuthContext(request);
     await connectDB();
     await Education.findByIdAndDelete(id);
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import connectDB from '@/lib/mongodb';
 import Experience from '@/models/Experience';
 import { getAuthContext, requireAuth } from '@/lib/apiAuth';
@@ -44,6 +45,8 @@ export async function PUT(
       runValidators: true,
     }).lean();
     if (!exp) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,
@@ -73,6 +76,8 @@ export async function DELETE(
     const authContext = await getAuthContext(request);
     await connectDB();
     await Experience.findByIdAndDelete(id);
+    revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     await logAuditEvent({
       request,
