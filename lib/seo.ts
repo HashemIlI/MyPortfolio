@@ -76,6 +76,7 @@ export function buildMetadata(
   const ogImages = ogImage ? [ogImage] : [`${base}/opengraph-image`];
 
   return {
+    metadataBase: new URL(base),
     title,
     description,
     keywords,
