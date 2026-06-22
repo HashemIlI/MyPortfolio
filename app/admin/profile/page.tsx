@@ -16,12 +16,16 @@ const TABS = [
 export default function ProfileAdminPage() {
   const [activeTab, setActiveTab] = useState('hero');
   const [data, setData] = useState<ProfileData>({});
+  const [highlightsEnRaw, setHighlightsEnRaw] = useState('');
+  const [highlightsArRaw, setHighlightsArRaw] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetch('/api/profile').then((r) => r.json()).then((d) => {
       setData(d);
+      setHighlightsEnRaw((d.highlightsEn as string[] | undefined)?.join('\n') ?? '');
+      setHighlightsArRaw((d.highlightsAr as string[] | undefined)?.join('\n') ?? '');
       setLoading(false);
     });
   }, []);
@@ -32,7 +36,11 @@ export default function ProfileAdminPage() {
       const res = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          highlightsEn: highlightsEnRaw.split('\n').map((s) => s.trim()).filter(Boolean),
+          highlightsAr: highlightsArRaw.split('\n').map((s) => s.trim()).filter(Boolean),
+        }),
       });
       if (!res.ok) throw new Error();
       toast({ title: 'Profile saved!', variant: 'success' });
@@ -190,6 +198,29 @@ export default function ProfileAdminPage() {
               accept="image/*"
               subdir="profile"
             />
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">Highlights (EN)</label>
+              <textarea
+                rows={5}
+                value={highlightsEnRaw}
+                onChange={(e) => setHighlightsEnRaw(e.target.value)}
+                placeholder="One highlight per line"
+                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 text-sm focus:outline-none focus:border-emerald-500 resize-none"
+              />
+              <p className="mt-1 text-xs text-gray-500">One highlight per line. Displayed as bullet cards on the right side of the About section.</p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">Highlights (AR)</label>
+              <textarea
+                rows={5}
+                dir="rtl"
+                value={highlightsArRaw}
+                onChange={(e) => setHighlightsArRaw(e.target.value)}
+                placeholder="ميزة واحدة في كل سطر"
+                className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-gray-200 text-sm focus:outline-none focus:border-emerald-500 resize-none"
+              />
+              <p className="mt-1 text-xs text-gray-500">ميزة واحدة في كل سطر. تظهر كبطاقات في الجانب الأيمن من قسم نبذة.</p>
+            </div>
           </>
         )}
 

@@ -33,6 +33,8 @@ export interface ProfileData {
   availableForWork: boolean;
   availabilityLabelEn: string;
   availabilityLabelAr: string;
+  highlightsEn?: string[];
+  highlightsAr?: string[];
 }
 
 export interface ExperienceData {

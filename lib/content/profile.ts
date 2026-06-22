@@ -38,6 +38,8 @@ const PROFILE_UPDATE_FIELDS = [
   'availableForWork',
   'availabilityLabelEn',
   'availabilityLabelAr',
+  'highlightsEn',
+  'highlightsAr',
 ] as const;
 
 type ProfileUpdateField = (typeof PROFILE_UPDATE_FIELDS)[number];
@@ -68,6 +70,13 @@ function pickProfileUpdate(input: Record<string, unknown>): ProfileUpdateInput {
     if (field === 'availableForWork' || field === 'showProfilePhoto') {
       if (typeof value === 'boolean') {
         update[field] = value;
+      }
+      return update;
+    }
+
+    if (field === 'highlightsEn' || field === 'highlightsAr') {
+      if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
+        (update as Record<string, unknown>)[field] = value as string[];
       }
       return update;
     }

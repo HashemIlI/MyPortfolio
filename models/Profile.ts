@@ -41,6 +41,9 @@ export interface IProfile extends Document {
   availableForWork: boolean;
   availabilityLabelEn: string;
   availabilityLabelAr: string;
+  // About highlights
+  highlightsEn: string[];
+  highlightsAr: string[];
 }
 
 const ProfileSchema = new Schema<IProfile>(
@@ -78,6 +81,24 @@ const ProfileSchema = new Schema<IProfile>(
     availableForWork: { type: Boolean, default: true },
     availabilityLabelEn: { type: String, default: 'Available for work' },
     availabilityLabelAr: { type: String, default: 'متاح للعمل' },
+    highlightsEn: {
+      type: [String],
+      default: [
+        'Turn raw data into actionable insights and decisions.',
+        'Work across the full machine learning lifecycle from data collection to deployment.',
+        'Build practical solutions with Python, SQL, TensorFlow, and Power BI.',
+        'Focus on real-world problems where analytics meets business context.',
+      ],
+    },
+    highlightsAr: {
+      type: [String],
+      default: [
+        'أحوّل البيانات الخام إلى رؤى وقرارات قابلة للتنفيذ.',
+        'أعمل عبر دورة حياة تعلم الآلة من جمع البيانات حتى التقييم والنشر.',
+        'أستخدم Python وSQL وTensorFlow وPower BI لبناء حلول عملية.',
+        'أركز على المشكلات الواقعية التي تربط التحليل بسياق الأعمال.',
+      ],
+    },
   },
   { timestamps: true }
 );

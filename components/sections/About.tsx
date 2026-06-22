@@ -32,19 +32,22 @@ export default function About({ profile }: AboutProps) {
   const intro = summarySentences.slice(0, 2).join(' ') || aboutSentences.slice(0, 2).join(' ');
   const support = aboutSentences.slice(0, 1).join(' ') || summarySentences.slice(0, 1).join(' ');
 
+  const FALLBACK_EN = [
+    'Turn raw data into actionable insights and decisions.',
+    'Work across the full machine learning lifecycle from data collection to deployment.',
+    'Build practical solutions with Python, SQL, TensorFlow, and Power BI.',
+    'Focus on real-world problems where analytics meets business context.',
+  ];
+  const FALLBACK_AR = [
+    'أحوّل البيانات الخام إلى رؤى وقرارات قابلة للتنفيذ.',
+    'أعمل عبر دورة حياة تعلم الآلة من جمع البيانات حتى التقييم والنشر.',
+    'أستخدم Python وSQL وTensorFlow وPower BI لبناء حلول عملية.',
+    'أركز على المشكلات الواقعية التي تربط التحليل بسياق الأعمال.',
+  ];
+
   const highlights = language === 'ar'
-    ? [
-        'أحوّل البيانات الخام إلى رؤى وقرارات قابلة للتنفيذ.',
-        'أعمل عبر دورة حياة تعلم الآلة من جمع البيانات حتى التقييم والنشر.',
-        'أستخدم Python وSQL وTensorFlow وPower BI لبناء حلول عملية.',
-        'أركز على المشكلات الواقعية التي تربط التحليل بسياق الأعمال.',
-      ]
-    : [
-        'Turn raw data into actionable insights and decisions.',
-        'Work across the full machine learning lifecycle from data collection to deployment.',
-        'Build practical solutions with Python, SQL, TensorFlow, and Power BI.',
-        'Focus on real-world problems where analytics meets business context.',
-      ];
+    ? (profile?.highlightsAr?.length ? profile.highlightsAr : FALLBACK_AR)
+    : (profile?.highlightsEn?.length ? profile.highlightsEn : FALLBACK_EN);
 
   return (
     <SectionWrapper id="about" className="py-10 lg:py-12">
