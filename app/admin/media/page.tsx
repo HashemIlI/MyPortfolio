@@ -69,9 +69,7 @@ export default function MediaAdminPage() {
         } else {
           failed++;
           const data = await res.json().catch(() => null);
-          if (typeof data?.message === 'string') {
-            setServerMessage(data.message);
-          }
+          if (typeof data?.message === 'string') setServerMessage(data.message);
         }
       } catch {
         failed++;
@@ -92,9 +90,7 @@ export default function MediaAdminPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        if (typeof data?.message === 'string') {
-          setServerMessage(data.message);
-        }
+        if (typeof data?.message === 'string') setServerMessage(data.message);
         throw new Error();
       }
       setServerMessage('');
@@ -108,17 +104,12 @@ export default function MediaAdminPage() {
   }
 
   function copyUrl(url: string) {
-    const fullUrl = window.location.origin + url;
+    // Blob URLs are absolute (https://); local dev URLs are relative (/uploads/...)
+    const fullUrl = url.startsWith('https://') ? url : window.location.origin + url;
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(fullUrl).then(() => {
-        setCopiedUrl(url);
-        setTimeout(() => setCopiedUrl(null), 2000);
-      }).catch(() => {
-        // Fallback for non-HTTPS or permission denied
-        fallbackCopy(fullUrl);
-        setCopiedUrl(url);
-        setTimeout(() => setCopiedUrl(null), 2000);
-      });
+      navigator.clipboard.writeText(fullUrl)
+        .then(() => { setCopiedUrl(url); setTimeout(() => setCopiedUrl(null), 2000); })
+        .catch(() => { fallbackCopy(fullUrl); setCopiedUrl(url); setTimeout(() => setCopiedUrl(null), 2000); });
     } else {
       fallbackCopy(fullUrl);
       setCopiedUrl(url);
@@ -148,11 +139,15 @@ export default function MediaAdminPage() {
     <div className="p-6 lg:p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-100">Media Library</h1>
-          <p className="text-gray-400 text-sm mt-0.5">{files.length} file{files.length !== 1 ? 's' : ''} in /{subdir}</p>
+          <h1 className="text-xl font-semibold text-foreground">Media Library</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">{files.length} file{files.length !== 1 ? 's' : ''} in /{subdir}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={load} className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Refresh">
+          <button
+            onClick={load}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors"
+            title="Refresh"
+          >
             <RefreshCw className="h-4 w-4" />
           </button>
           <button
@@ -175,13 +170,13 @@ export default function MediaAdminPage() {
       </div>
 
       {/* Folder tabs */}
-      <div className="flex gap-1 mb-6 p-1 bg-gray-800 rounded-lg w-fit overflow-x-auto">
+      <div className="flex gap-1 mb-6 p-1 rounded-lg w-fit overflow-x-auto border border-white/10 bg-black/20">
         {SUBDIRS.map((dir) => (
           <button
             key={dir}
             onClick={() => setSubdir(dir)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
-              subdir === dir ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-gray-200'
+              subdir === dir ? 'bg-emerald-600 text-white' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <FolderOpen className="h-3 w-3" />
@@ -197,14 +192,16 @@ export default function MediaAdminPage() {
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         className={`mb-6 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-          dragOver ? 'border-emerald-500 bg-emerald-500/10' : 'border-gray-700 hover:border-gray-600 hover:bg-gray-800/50'
+          dragOver
+            ? 'border-emerald-500 bg-emerald-500/10'
+            : 'border-white/10 hover:border-white/20 hover:bg-white/[0.03]'
         }`}
       >
-        <Upload className="h-8 w-8 text-gray-500 mx-auto mb-2" />
-        <p className="text-sm text-gray-400">
+        <Upload className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">
           Drop files here or <span className="text-emerald-400">click to upload</span>
         </p>
-        <p className="text-xs text-gray-600 mt-1">JPG, PNG, WebP, GIF, PDF · Max 10MB each</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">JPG, PNG, WebP, GIF, PDF · Max 10MB each</p>
       </div>
 
       {serverMessage && (
@@ -216,10 +213,10 @@ export default function MediaAdminPage() {
       {/* File grid */}
       {loading ? (
         <div className="flex items-center justify-center h-48">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : files.length === 0 ? (
-        <div className="bg-gray-800 rounded-xl border border-gray-700 p-16 text-center text-gray-500">
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-16 text-center text-muted-foreground">
           No files in this folder. Upload something to get started.
         </div>
       ) : (
@@ -227,30 +224,30 @@ export default function MediaAdminPage() {
           {files.map((file) => (
             <div
               key={file.url}
-              className="group bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-gray-600 transition-all"
+              className="group rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden hover:border-white/20 transition-all"
             >
               {/* Preview */}
-              <div className="aspect-square bg-gray-900 flex items-center justify-center relative overflow-hidden">
+              <div className="aspect-square bg-black/30 flex items-center justify-center relative overflow-hidden">
                 {file.type === 'image' ? (
                   <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
                 ) : file.type === 'pdf' ? (
                   <FileText className="h-10 w-10 text-red-400" />
                 ) : (
-                  <ImageIcon className="h-10 w-10 text-gray-500" />
+                  <ImageIcon className="h-10 w-10 text-muted-foreground/40" />
                 )}
 
                 {/* Overlay actions */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <button
                     onClick={() => copyUrl(file.url)}
-                    className="p-2 rounded-lg bg-gray-700 hover:bg-emerald-600 text-white transition-colors"
+                    className="p-2 rounded-lg bg-black/60 hover:bg-emerald-600 text-white transition-colors"
                     title="Copy URL"
                   >
                     {copiedUrl === file.url ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                   </button>
                   <button
                     onClick={() => setDeleteUrl(file.url)}
-                    className="p-2 rounded-lg bg-gray-700 hover:bg-red-600 text-white transition-colors"
+                    className="p-2 rounded-lg bg-black/60 hover:bg-red-600 text-white transition-colors"
                     title="Delete"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -260,24 +257,24 @@ export default function MediaAdminPage() {
 
               {/* Info */}
               <div className="p-2">
-                <p className="text-xs text-gray-300 truncate" title={file.name}>{file.name}</p>
-                <p className="text-xs text-gray-600 mt-0.5">{formatBytes(file.size)}</p>
+                <p className="text-xs text-foreground/80 truncate" title={file.name}>{file.name}</p>
+                <p className="text-xs text-muted-foreground/60 mt-0.5">{formatBytes(file.size)}</p>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Delete confirm */}
+      {/* Delete confirm modal */}
       {deleteUrl && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full border border-gray-700">
-            <h3 className="font-bold text-gray-100 mb-2">Delete File?</h3>
-            <p className="text-gray-400 text-sm mb-1 truncate">{deleteUrl}</p>
-            <p className="text-gray-500 text-xs mb-5">This cannot be undone. Make sure this file isn&apos;t referenced anywhere.</p>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#101310] rounded-xl p-6 max-w-sm w-full border border-white/10">
+            <h3 className="font-semibold text-foreground mb-2">Delete File?</h3>
+            <p className="text-muted-foreground text-sm mb-1 truncate">{deleteUrl.split('/').pop()}</p>
+            <p className="text-muted-foreground/60 text-xs mb-5">This is permanent and cannot be undone. Make sure this file isn&apos;t referenced anywhere.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setDeleteUrl(null)} className="px-4 py-2 text-sm text-gray-400">Cancel</button>
-              <button onClick={() => handleDelete(deleteUrl)} className="px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm">Delete</button>
+              <button onClick={() => setDeleteUrl(null)} className="px-4 py-2 text-sm text-muted-foreground">Cancel</button>
+              <button onClick={() => handleDelete(deleteUrl)} className="px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-sm transition-colors">Delete</button>
             </div>
           </div>
         </div>
