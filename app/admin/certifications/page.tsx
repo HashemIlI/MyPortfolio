@@ -296,12 +296,9 @@ export default function CertificationsAdminPage() {
               <T label="Description (AR)" val={form.descriptionAr} set={(v) => setForm({ ...form, descriptionAr: v })} rows={2} dir="rtl" />
               <F label="Credential URL" val={form.credentialUrl} set={(v) => setForm({ ...form, credentialUrl: v })} placeholder="https://..." />
               <F label="Badge Image URL" val={form.badge} set={(v) => setForm({ ...form, badge: v })} />
-              <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
+              <div className="flex flex-wrap items-center gap-5">
                 <CheckF label="Featured" checked={form.featured} set={(v) => setForm({ ...form, featured: v })} />
                 <CheckF label="Visible" checked={form.visible} set={(v) => setForm({ ...form, visible: v })} />
-                <div className="w-full sm:ml-auto sm:w-24">
-                  <F label="Order" val={String(form.order)} set={(v) => setForm({ ...form, order: Number(v) })} type="number" />
-                </div>
               </div>
             </div>
             <div className="flex flex-col-reverse justify-end gap-3 border-t border-white/10 p-4 sm:flex-row sm:p-5">
