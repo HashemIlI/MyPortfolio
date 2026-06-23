@@ -10,14 +10,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   if (pathname === '/admin/login') {
     return (
-      <div className="admin-theme min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.08),transparent_28%),#090b09] text-foreground">
+      <div dir="ltr" className="dark admin-theme min-h-screen bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.08),transparent_28%),#090b09] text-foreground">
         {children}
       </div>
     );
   }
 
   return (
-    <div className="admin-theme flex min-h-screen bg-[#090b09] text-foreground">
+    <div dir="ltr" className="dark admin-theme flex min-h-screen bg-[#090b09] text-foreground">
       <div className="hidden lg:flex">
         <Sidebar />
       </div>
