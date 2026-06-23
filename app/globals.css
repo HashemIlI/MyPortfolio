@@ -153,6 +153,15 @@ html[data-typography-scale="large"] .themed-section h2 {
   --accent-foreground: 222 28% 14%;
 }
 
+/* Re-assert dark values when the admin shell itself carries the `dark` class,
+   overriding the .light .admin-theme rule above (equal specificity, later wins). */
+.dark.admin-theme {
+  --foreground: 210 20% 96%;
+  --card-foreground: 210 20% 96%;
+  --muted-foreground: 214 14% 84%;
+  --accent-foreground: 210 20% 96%;
+}
+
 .admin-surface {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
