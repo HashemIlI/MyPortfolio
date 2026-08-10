@@ -24,6 +24,7 @@ export async function PUT(request: Request) {
       )
     );
     revalidatePath('/');
+    revalidatePath('/', 'layout');
 
     const categories = await SkillCategory.find().sort({ sortOrder: 1, createdAt: 1 }).lean();
     return NextResponse.json({ success: true, categories: JSON.parse(JSON.stringify(categories)) });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, GripVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { fetchJson } from '@/lib/http';
 import { Brain } from 'lucide-react';
@@ -15,7 +15,6 @@ type FormData = {
   category: string;
   level: SkillLevel;
   visible: boolean;
-  order: number;
 };
 
 const EMPTY: FormData = {
@@ -24,8 +23,12 @@ const EMPTY: FormData = {
   category: '',
   level: 'Advanced',
   visible: true,
-  order: 0,
 };
+
+/** Display order inside a category — must match what the reorder endpoint persists. */
+function byOrder(a: SkillData, b: SkillData) {
+  return a.order - b.order || a.nameEn.localeCompare(b.nameEn);
+}
 
 export default function SkillsAdminPage() {
   const [skills, setSkills] = useState<SkillData[]>([]);
@@ -36,6 +39,7 @@ export default function SkillsAdminPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [filterSlug, setFilterSlug] = useState<string>('All');
+  const [dragged, setDragged] = useState<{ id: string; category: string; snapshot: SkillData[] } | null>(null);
 
   async function load() {
     const [skillData, catData] = await Promise.all([
@@ -54,11 +58,7 @@ export default function SkillsAdminPage() {
   function openAdd(slug?: string) {
     const defaultSlug = slug ?? skillCategories[0]?.slug ?? '';
     setEditing(null);
-    setForm({
-      ...EMPTY,
-      category: defaultSlug,
-      order: skills.filter((s) => s.category === defaultSlug).length,
-    });
+    setForm({ ...EMPTY, category: defaultSlug });
     setModal(true);
   }
 
@@ -70,19 +70,26 @@ export default function SkillsAdminPage() {
       category: skill.category,
       level: skill.level,
       visible: skill.visible,
-      order: skill.order,
     });
     setModal(true);
+  }
+
+  /** New skills — and skills moved to another category — land at the end of that category. */
+  function nextOrderFor(slug: string) {
+    const orders = skills.filter((s) => s.category === slug).map((s) => s.order);
+    return orders.length === 0 ? 0 : Math.max(...orders) + 1;
   }
 
   async function handleSave() {
     if (!form.nameEn) return;
     setSaving(true);
+    const order =
+      editing && editing.category === form.category ? editing.order : nextOrderFor(form.category);
     try {
       const res = await fetch(editing ? `/api/skills/${editing._id}` : '/api/skills', {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, order }),
       });
       if (!res.ok) throw new Error();
       toast({ title: editing ? 'Skill updated!' : 'Skill added!', variant: 'success' });
@@ -102,6 +109,52 @@ export default function SkillsAdminPage() {
     load();
   }
 
+  /** Reorder within one category only — dragging across categories is a no-op. */
+  function moveDragged(overId: string) {
+    if (!dragged || dragged.id === overId) return;
+    setSkills((current) => {
+      const over = current.find((s) => String(s._id) === overId);
+      if (!over || over.category !== dragged.category) return current;
+
+      const group = current.filter((s) => s.category === dragged.category).sort(byOrder);
+      const from = group.findIndex((s) => String(s._id) === dragged.id);
+      const to = group.findIndex((s) => String(s._id) === overId);
+      if (from === -1 || to === -1) return current;
+
+      const next = [...group];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+
+      const orderById = new Map(next.map((s, i) => [String(s._id), i]));
+      return current.map((s) =>
+        orderById.has(String(s._id)) ? { ...s, order: orderById.get(String(s._id))! } : s
+      );
+    });
+  }
+
+  async function persistOrder(category: string, snapshot: SkillData[]) {
+    const ids = skills
+      .filter((s) => s.category === category)
+      .sort(byOrder)
+      .map((s) => String(s._id));
+    if (ids.length === 0) return;
+
+    try {
+      await fetchJson<{ success: boolean; skills: SkillData[] }>('/api/skills/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, ids }),
+      });
+      toast({ title: 'Order saved', variant: 'success' });
+    } catch (error) {
+      setSkills(snapshot);
+      toast({
+        title: error instanceof Error ? error.message : 'Order save failed',
+        variant: 'destructive',
+      });
+    }
+  }
+
   const visibleCategories = filterSlug === 'All'
     ? skillCategories
     : skillCategories.filter((c) => c.slug === filterSlug);
@@ -109,9 +162,7 @@ export default function SkillsAdminPage() {
   const groupedCategories = visibleCategories.map((cat) => ({
     cat,
     Icon: ICON_MAP[cat.icon] ?? Brain,
-    items: skills
-      .filter((s) => s.category === cat.slug)
-      .sort((a, b) => a.order - b.order || a.nameEn.localeCompare(b.nameEn)),
+    items: skills.filter((s) => s.category === cat.slug).sort(byOrder),
   }));
 
   return (
@@ -186,9 +237,31 @@ export default function SkillsAdminPage() {
                 {items.map((skill) => (
                   <div
                     key={String(skill._id)}
-                    className="group flex min-w-0 flex-col gap-2 rounded-2xl border border-primary/18 bg-primary/[0.06] px-3 py-2.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-colors duration-200 hover:border-primary/30 hover:bg-primary/[0.10] sm:flex-row sm:items-center sm:justify-between"
+                    draggable
+                    onDragStart={() =>
+                      setDragged({ id: String(skill._id), category: cat.slug, snapshot: skills })
+                    }
+                    onDragEnter={() => moveDragged(String(skill._id))}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDragEnd={() => {
+                      const current = dragged;
+                      setDragged(null);
+                      if (current) persistOrder(current.category, current.snapshot);
+                    }}
+                    className={`group flex min-w-0 flex-col gap-2 rounded-2xl border px-3 py-2.5 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between ${
+                      dragged?.id === String(skill._id)
+                        ? 'border-primary/40 bg-primary/[0.14]'
+                        : 'border-primary/18 bg-primary/[0.06] hover:border-primary/30 hover:bg-primary/[0.10]'
+                    }`}
                   >
                     <div className="min-w-0 flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                      <button
+                        type="button"
+                        className="shrink-0 cursor-grab rounded-lg border border-border/60 bg-background/40 p-1 text-muted-foreground active:cursor-grabbing"
+                        aria-label={`Drag ${skill.nameEn}`}
+                      >
+                        <GripVertical className="h-3.5 w-3.5" />
+                      </button>
                       <span className="max-w-full truncate text-foreground/82 dark:text-emerald-50/85">
                         {skill.nameEn}
                       </span>
@@ -277,23 +350,20 @@ export default function SkillsAdminPage() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2">
-                <Field
-                  label="Order"
-                  val={String(form.order)}
-                  set={(v) => setForm({ ...form, order: Number(v) })}
-                  type="number"
+              <label className="flex cursor-pointer items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  checked={form.visible}
+                  onChange={(e) => setForm({ ...form, visible: e.target.checked })}
+                  className="h-4 w-4 rounded accent-emerald-500"
                 />
-                <label className="flex cursor-pointer items-center gap-2 pb-2">
-                  <input
-                    type="checkbox"
-                    checked={form.visible}
-                    onChange={(e) => setForm({ ...form, visible: e.target.checked })}
-                    className="h-4 w-4 rounded accent-emerald-500"
-                  />
-                  <span className="text-sm text-foreground">Visible</span>
-                </label>
-              </div>
+                <span className="text-sm text-foreground">Visible</span>
+              </label>
+
+              <p className="text-xs text-muted-foreground">
+                Drag skills on the Skills board to reorder them. New skills are added to the end of
+                their category.
+              </p>
             </div>
 
             <div className="flex flex-col-reverse justify-end gap-3 p-4 pt-0 sm:flex-row sm:p-5 sm:pt-0">
